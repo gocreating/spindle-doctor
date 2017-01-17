@@ -14,8 +14,13 @@ Unzip files into `/phm2012/assets/data/unzipped`.
 
 ```
 /phm2012/src/preprocess $ python merge.py
-
 ```
 
 > #### 注意事項
 Temparature 的 data 有些是用分號區隔，不是逗號，所以實作程式時要獨立處理
+
+### 3. Labeling Merged Files
+
+```
+/phm2012/src/preprocess $ python label.py
+```
