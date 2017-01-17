@@ -1,2 +1,3 @@
 phm2012/assets/data
-phm2012/build
+phm2012/build/*
+!phm2012/build/plots
