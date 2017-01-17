@@ -32,6 +32,10 @@ The whole research is divided into 3  parts.
 
 ### I. Research Part
 ### II. Simulation Part
+
+1. [Introduction to PHM 2012 dataset](./docs/01-introduction-to-phm-2012-dataset.md)
+2. [Data Preprocessing](./docs/02-data-preprocessing.md)
+
 ### III. Construction Part
 
 ## Feature Work
