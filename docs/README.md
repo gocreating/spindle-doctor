@@ -36,6 +36,7 @@ The whole research is divided into 3  parts.
 1. [Introduction to PHM 2012 dataset](./01-introduction-to-phm-2012-dataset.md)
 2. [Data Preprocessing](./02-data-preprocessing.md)
 3. [Feature Observation](./03-feature-observation.md)
+4. [Feature Comparison](./04-feature-comparison.md)
 
 ### III. Construction Part
 
