@@ -16,18 +16,29 @@ FEATURE_NAMES = {
     'temp': ['h', 'm', 's', 'dots', 'celsius'],
 }
 ACC_PLOTS = {
-    'hacc_only': {
+    'hacc_plus_vacc': [{
         'featureName': 'hacc',
         'marker': {
-            'c': 'blue',
+            'color': 'blue',
         }
-    },
-    'vacc_only': {
+    }, {
         'featureName': 'vacc',
         'marker': {
-            'c': 'red',
+            'color': 'red',
         },
-    },
+    }],
+    'hacc_only': [{
+        'featureName': 'hacc',
+        'marker': {
+            'color': 'blue',
+        }
+    }],
+    'vacc_only': [{
+        'featureName': 'vacc',
+        'marker': {
+            'color': 'red',
+        },
+    }],
 }
 
 def toSecond(rowOrDataframe):
@@ -73,35 +84,33 @@ def main():
         )
 
         for accPlot in ACC_PLOTS:
-            fig, axAcc = plt.subplots()
+            lines = ()
+            labels = ()
+            defaultMarker = {
+                'linewidth': 0,
+                'marker': '.',
+                'markersize': 1,
+                'color': 'blue',
+                'alpha': 0.5,
+                'zorder': 10,
+            }
+            axisOffset = 1
+            fig, axTemparature = plt.subplots()
 
-            lineAcc, = axAcc.plot(
-                dfAcc['timeDotSecond'],
-                dfAcc[ACC_PLOTS[accPlot]['featureName']],
-                'b.'
-            )
-            axAcc.set_xlabel('Time (0.1s)')
-            axAcc.set_xlim(
-                dfAcc['timeDotSecond'].min(),
-                dfAcc['timeDotSecond'].max() + (
-                    (
-                        dfAcc['timeDotSecond'].max() -
-                        dfAcc['timeDotSecond'].min()
-                    ) *
-                    0.1
-                )
-            )
-            axAcc.set_ylabel('Accelerometer Reading (g)', color='b')
-            axAcc.set_ylim(-60, 60)
-            axAcc.tick_params('y', colors='b')
-
-            axTemparature = axAcc.twinx()
+            marker = dict(defaultMarker.items() + ({
+                'linewidth': 1,
+                'marker': '_',
+                'color': 'black',
+                'zorder': 20,
+            }).items())
             lineTemparature, = axTemparature.plot(
                 dfTemparature['timeDotSecond'],
                 dfTemparature['celsius'],
-                'r'
+                **marker
             )
-            axTemparature.set_ylabel('Temparature (celsius)', color='r')
+            lines += (lineTemparature,)
+            labels += ('celsius',)
+            axTemparature.set_ylabel('Temparature (celsius)', color=marker['color'])
             axTemparature.set_xlim(
                 dfTemparature['timeDotSecond'].min(),
                 dfTemparature['timeDotSecond'].max() + (
@@ -113,7 +122,39 @@ def main():
                 )
             )
             axTemparature.set_ylim(0, 200)
-            axTemparature.tick_params('y', colors='r')
+            axTemparature.tick_params('y', colors=marker['color'])
+            axTemparature.set_xlabel('Time (0.1s)')
+
+            for feature in ACC_PLOTS[accPlot]:
+                axFeature = axTemparature.twinx()
+                axTemparature.set_zorder(axFeature.get_zorder() + 1)
+                axTemparature.patch.set_visible(False)
+                marker = dict(defaultMarker.items() + feature['marker'].items())
+
+                new_fixed_axis = axFeature.spines['right'].set_position(('axes', axisOffset))
+                axisOffset += 0.15
+                axFeature.yaxis.tick_right()
+                axFeature.set_ylabel('Accelerometer Reading (g)', color=marker['color'])
+                axFeature.set_xlim(
+                    dfAcc['timeDotSecond'].min(),
+                    dfAcc['timeDotSecond'].max() + (
+                        (
+                            dfAcc['timeDotSecond'].max() -
+                            dfAcc['timeDotSecond'].min()
+                        ) *
+                        0.1
+                    )
+                )
+                axFeature.set_ylim(-60, 60)
+                axFeature.tick_params('y', colors=marker['color'])
+
+                lineFeature, = axFeature.plot(
+                    dfAcc['timeDotSecond'],
+                    dfAcc[feature['featureName']],
+                    **marker
+                )
+                lines += (lineFeature,)
+                labels += (feature['featureName'],)
 
             fig.tight_layout()
 
@@ -123,11 +164,7 @@ def main():
                 os.makedirs(destDir)
             filename = 'bearing_{0}_comparison'.format(fileId)
             plt.title(filename)
-            plt.legend(
-                (lineAcc, lineTemparature),
-                (ACC_PLOTS[accPlot]['featureName'], 'celsius'),
-                loc='upper left'
-            )
+            plt.legend(lines, labels, loc='upper left')
             plt.savefig(
                 os.path.join(destDir, '{0}.jpg'.format(filename)),
                 dpi=400,
