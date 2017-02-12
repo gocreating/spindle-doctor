@@ -37,6 +37,7 @@ The whole research is divided into 3  parts.
 2. [Data Preprocessing](./02-data-preprocessing.md)
 3. [Feature Observation](./03-feature-observation.md)
 4. [Feature Comparison](./04-feature-comparison.md)
+5. [Model Observation](./05-model-observation.md)
 
 ### III. Construction Part
 
