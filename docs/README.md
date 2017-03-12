@@ -43,6 +43,12 @@ The whole research is divided into 3  parts.
 
 ### III. Construction Part
 
+``` bash
+/tongtai/src/preprocess $ python merge.py
+/tongtai/src/preprocess $ python join.py # take really long time
+/tongtai/src/preprocess $ python label.py
+```
+
 ## Feature Work
 
 TBD.
