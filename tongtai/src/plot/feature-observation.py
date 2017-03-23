@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-SRC_DIR = u'../../build/data/labeled/第五軸 ABL TDA 168000轉 1267孔'
-DEST_DIR = u'../../build/plots/feature-observation/第五軸 ABL TDA 168000轉 1267孔'
+SRC_DIR = u'../../build/data/labeled'
+DEST_DIR = u'../../build/plots/feature-observation'
 INPUT_CSV_COLUMNS = [
-    'yyyy', 'MM', 'dd', 'hh', 'mm', 'ss', 'fff',
+    'timestamp', 'yyyy', 'MM', 'dd', 'hh', 'mm', 'ss', 'fff',
     'x', 'y', 'z',
     'uInG', 'vInG', 'wInG',
     'rul',
@@ -89,7 +89,7 @@ def toMillisecond(rowOrDataframe):
         rowOrDataframe['fff']
     )
 
-def plot(df, filename):
+def plot(df, dataset, filename):
     for featurePlot in FEATURE_PLOTS:
         featureNames = FEATURE_PLOTS[featurePlot]
         lines = ()
@@ -139,7 +139,7 @@ def plot(df, filename):
         fig.tight_layout()
 
         # output figure
-        destDir = os.path.join(DEST_DIR, featurePlot)
+        destDir = os.path.join(DEST_DIR, dataset, featurePlot)
         if not os.path.exists(destDir):
             os.makedirs(destDir)
         title = '{0}_{1}'.format(
@@ -156,19 +156,21 @@ def plot(df, filename):
         plt.clf()
 
 def main():
-    filenames = glob.glob(os.path.join(SRC_DIR, '*.csv'))
-    for fileFullName in filenames:
-        filename = os.path.basename(fileFullName)
-        print('reading ' + filename + '...')
+    datasets = os.listdir(SRC_DIR)
+    for dataset in datasets:
+        filenames = glob.glob(os.path.join(SRC_DIR, dataset, '*.csv'))
+        for fileFullName in filenames:
+            filename = os.path.basename(fileFullName)
+            print('reading ' + filename + '...')
 
-        df = pd.read_csv(
-            fileFullName,
-            sep=',',
-            header=None,
-            names=INPUT_CSV_COLUMNS
-        )
-        offset = toMillisecond(df.iloc[0])
-        df['millisecond'] = toMillisecond(df) - offset
-        plot(df, filename)
+            df = pd.read_csv(
+                fileFullName,
+                sep=',',
+                header=None,
+                names=INPUT_CSV_COLUMNS
+            )
+            offset = toMillisecond(df.iloc[0])
+            df['millisecond'] = toMillisecond(df) - offset
+            plot(df, dataset, filename)
 
 main()
