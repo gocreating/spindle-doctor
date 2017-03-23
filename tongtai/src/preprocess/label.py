@@ -8,7 +8,7 @@ SRC_DIR = '../../build/data/joined'
 DEST_DIR = '../../build/data/labeled'
 INPUT_CSV_COLUMNS = ['timestamp', 'x', 'y', 'z', 'u', 'v', 'w']
 OUTPUT_CSV_COLUMNS = [
-    'yyyy', 'MM', 'dd', 'hh', 'mm', 'ss', 'fff',
+    'timestamp', 'yyyy', 'MM', 'dd', 'hh', 'mm', 'ss', 'fff',
     'x', 'y', 'z',
     'uInG', 'vInG', 'wInG',
     'rul',
