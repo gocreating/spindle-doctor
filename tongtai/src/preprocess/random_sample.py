@@ -11,6 +11,10 @@ INPUT_CSV_COLUMNS = OUTPUT_CSV_COLUMNS = [
     'x', 'y', 'z',
     'uInG', 'vInG', 'wInG',
     'rul',
+    'ss_acc',
+    'ss_curr',
+    'ss_acc_normal',
+    'ss_curr_normal',
 ]
 
 def main():

@@ -12,7 +12,36 @@ OUTPUT_CSV_COLUMNS = [
     'x', 'y', 'z',
     'uInG', 'vInG', 'wInG',
     'rul',
+    'ss_acc',
+    'ss_curr',
+    'ss_acc_normal',
+    'ss_curr_normal',
 ]
+
+def add_features(df):
+    # format timestamp
+    df[[
+        'yyyy',
+        'MM',
+        'dd',
+        'hh',
+        'mm',
+        'ss',
+        'fff',
+    ]] = df['timestamp'].apply(timestampSplitter)
+
+    # transform current unit
+    df['uInG'] = df['u'] * 0.004
+    df['vInG'] = df['v'] * 0.004
+    df['wInG'] = df['w'] * 0.004
+
+    # compute sum of squared
+    df['ss_acc'] = df['x'] ** 2 + df['y'] ** 2 + df['z'] ** 2
+    df['ss_curr'] = df['uInG'] ** 2 + df['vInG'] ** 2 + df['wInG'] ** 2
+
+    # compute normalization
+    df['ss_acc_normal'] = (df['ss_acc'] - df['ss_acc'].mean()) / (df['ss_acc'].max() - df['ss_acc'].min())
+    df['ss_curr_normal'] = (df['ss_curr'] - df['ss_curr'].mean()) / (df['ss_curr'].max() - df['ss_curr'].min())
 
 def timestampSplitter(timestamp):
     return pd.Series([
@@ -48,18 +77,7 @@ def main():
                 header=None,
                 names=INPUT_CSV_COLUMNS,
             )
-            df[[
-                'yyyy',
-                'MM',
-                'dd',
-                'hh',
-                'mm',
-                'ss',
-                'fff',
-            ]] = df['timestamp'].apply(timestampSplitter)
-            df['uInG'] = df['u'] * 0.004
-            df['vInG'] = df['v'] * 0.004
-            df['wInG'] = df['w'] * 0.004
+            add_features(df)
 
             firstRow = df.head(1)
             lastRow = df.tail(1)

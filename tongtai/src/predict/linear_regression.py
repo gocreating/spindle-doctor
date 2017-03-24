@@ -13,16 +13,32 @@ INPUT_CSV_COLUMNS = [
     'x', 'y', 'z',
     'uInG', 'vInG', 'wInG',
     'rul',
+    'ss_acc',
+    'ss_curr',
+    'ss_acc_normal',
+    'ss_curr_normal',
 ]
 TRAINING_AND_TESTING_FEATURES = {
     'x': ['x'],
     'x_plus_y_plus_z': ['x', 'y', 'z'],
+    'ss_acc': ['ss_acc'],
+    'ss_curr': ['ss_curr'],
+    'ss_acc_normal': ['ss_acc_normal'],
+    'ss_curr_normal': ['ss_curr_normal'],
+    'ss_acc_normal_plus_ss_curr_normal': [
+        'ss_acc_normal',
+        'ss_curr_normal',
+    ],
 }
 OUTPUT_CSV_COLUMNS = [
     'timestamp', 'yyyy', 'MM', 'dd', 'hh', 'mm', 'ss', 'fff',
     'x', 'y', 'z',
     'uInG', 'vInG', 'wInG',
     'rul', 'predictedRul',
+    'ss_acc',
+    'ss_curr',
+    'ss_acc_normal',
+    'ss_curr_normal',
 ]
 
 def main():

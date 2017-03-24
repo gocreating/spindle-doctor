@@ -15,6 +15,10 @@ INPUT_CSV_COLUMNS = [
     'x', 'y', 'z',
     'uInG', 'vInG', 'wInG',
     'rul',
+    'ss_acc',
+    'ss_curr',
+    'ss_acc_normal',
+    'ss_curr_normal',
 ]
 CONFIG_MAP = {
     'default': {
@@ -70,13 +74,48 @@ CONFIG_MAP = {
         'ylim': [-0.03, 0.03],
         'label': 'W Phase Reading (g)',
     },
+    'ss_acc': {
+        'marker': {
+            'color': 'blue',
+        },
+        'ylim': [0, 30000000],
+        'label': 'ss_acc',
+    },
+    'ss_curr': {
+        'marker': {
+            'color': 'blue',
+        },
+        'ylim': [0, 0.002],
+        'label': 'ss_curr',
+    },
+    'ss_acc_normal': {
+        'marker': {
+            'color': 'blue',
+        },
+        'ylim': [-0.03, 1],
+        'label': 'ss_acc_normal',
+    },
+    'ss_curr_normal': {
+        'marker': {
+            'color': 'blue',
+        },
+        'ylim': [-0.15, 1],
+        'label': 'ss_curr_normal',
+    },
 }
 FEATURE_PLOTS = {
     'M1': ['x'],
     'M2': ['y'],
     'M3': ['z'],
     'M4': ['x', 'y', 'z'],
-    'M5': ['uInG', 'vInG', 'wInG'],
+    'M5': ['uInG'],
+    'M6': ['vInG'],
+    'M7': ['wInG'],
+    'M8': ['uInG', 'vInG', 'wInG'],
+    'M9': ['ss_acc'],
+    'M10': ['ss_curr'],
+    'M11': ['ss_acc_normal'],
+    'M12': ['ss_curr_normal'],
 }
 
 def toMillisecond(rowOrDataframe):
