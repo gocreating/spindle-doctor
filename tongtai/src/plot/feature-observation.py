@@ -37,42 +37,42 @@ CONFIG_MAP = {
             'color': 'red',
         },
         'ylim': [-5000, 5000],
-        'label': 'Accelerometer Reading (??)',
+        'label': 'Accelerometer Reading (g)',
     },
     'y': {
         'marker': {
             'color': 'green',
         },
         'ylim': [-5000, 5000],
-        'label': 'Accelerometer Reading (??)',
+        'label': 'Accelerometer Reading (g)',
     },
     'z': {
         'marker': {
             'color': 'blue',
         },
         'ylim': [-5000, 5000],
-        'label': 'Accelerometer Reading (??)',
+        'label': 'Accelerometer Reading (g)',
     },
     'uInG': {
         'marker': {
             'color': 'red',
         },
         'ylim': [-0.03, 0.03],
-        'label': 'U Phase Reading (g)',
+        'label': 'U Phase Current (A)',
     },
     'vInG': {
         'marker': {
             'color': 'green',
         },
         'ylim': [-0.03, 0.03],
-        'label': 'V Phase Reading (g)',
+        'label': 'V Phase Current (A)',
     },
     'wInG': {
         'marker': {
             'color': 'blue',
         },
         'ylim': [-0.03, 0.03],
-        'label': 'W Phase Reading (g)',
+        'label': 'W Phase Current (A)',
     },
     'ss_acc': {
         'marker': {
