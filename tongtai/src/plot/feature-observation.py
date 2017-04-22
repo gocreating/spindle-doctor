@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+mpl.rcParams['agg.path.chunksize'] = 10000
+
 SRC_DIR = u'../../build/data/labeled'
 DEST_DIR = u'../../build/plots/feature-observation'
 INPUT_CSV_COLUMNS = [
