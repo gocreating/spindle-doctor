@@ -37,6 +37,8 @@ CONFIG_MAP = {
     'x': {
         'marker': {
             'color': 'red',
+            # 'linewidth': 1,
+            # 'markersize': 3,
         },
         'ylim': [-5000, 5000],
         'label': 'Accelerometer Reading (mg)',
@@ -104,6 +106,24 @@ CONFIG_MAP = {
         'ylim': [-0.15, 1],
         'label': 'ss_curr_normal',
     },
+    'x_diff': {
+        'marker': {
+            'color': 'blue',
+            'linewidth': 1,
+            'markersize': 3,
+        },
+        'ylim': [-500, 500],
+        'label': 'x_diff',
+    },
+    'x_abs_diff': {
+        'marker': {
+            'color': 'blue',
+            'linewidth': 1,
+            'markersize': 3,
+        },
+        'ylim': [-500, 500],
+        'label': 'x_abs_diff',
+    },
 }
 FEATURE_PLOTS = {
     'M1': ['x'],
@@ -118,6 +138,8 @@ FEATURE_PLOTS = {
     'M10': ['ss_curr'],
     'M11': ['ss_acc_normal'],
     'M12': ['ss_curr_normal'],
+    'M13': ['x', 'x_diff'],
+    'M14': ['x_abs_diff'],
 }
 
 def toMillisecond(rowOrDataframe):
@@ -212,6 +234,9 @@ def main():
             )
             offset = toMillisecond(df.iloc[0])
             df['millisecond'] = toMillisecond(df) - offset
+            # df['millisecond'] = df['millisecond'][30000:30100]
+            df['x_diff'] = df['x'].diff()
+            df['x_abs_diff'] = df['x'].abs().diff()
             plot(df, dataset, filename)
 
 main()
