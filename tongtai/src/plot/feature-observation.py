@@ -37,21 +37,21 @@ CONFIG_MAP = {
             'color': 'red',
         },
         'ylim': [-5000, 5000],
-        'label': 'Accelerometer Reading (g)',
+        'label': 'Accelerometer Reading (mg)',
     },
     'y': {
         'marker': {
             'color': 'green',
         },
         'ylim': [-5000, 5000],
-        'label': 'Accelerometer Reading (g)',
+        'label': 'Accelerometer Reading (mg)',
     },
     'z': {
         'marker': {
             'color': 'blue',
         },
         'ylim': [-5000, 5000],
-        'label': 'Accelerometer Reading (g)',
+        'label': 'Accelerometer Reading (mg)',
     },
     'uInG': {
         'marker': {
