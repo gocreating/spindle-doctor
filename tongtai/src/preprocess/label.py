@@ -1,11 +1,16 @@
 # coding=UTF-8
+import logging
+import math
 import sys
 import glob
 import os
 import pandas as pd
 
+logging.basicConfig(level=logging.INFO)
+
 SRC_DIR = '../../build/data/joined'
 DEST_DIR = '../../build/data/labeled'
+CHUNK_SIZE = 10000
 INPUT_CSV_COLUMNS = ['timestamp', 'x', 'y', 'z', 'u', 'v', 'w']
 OUTPUT_CSV_COLUMNS = [
     'timestamp', 'yyyy', 'MM', 'dd', 'hh', 'mm', 'ss', 'fff',
@@ -64,6 +69,10 @@ def toMillisecond(rowOrDataframe):
         rowOrDataframe['fff']
     )
 
+# http://stackoverflow.com/questions/845058/how-to-get-line-count-cheaply-in-python
+def row_count(filename):
+    return sum(1 for line in open(filename))
+
 def main():
     datasets = os.listdir(SRC_DIR)
     for dataset in datasets:
@@ -71,33 +80,49 @@ def main():
             os.path.join(SRC_DIR, dataset, '*.csv')
         )
         for filename in filenames:
-            print('parsing ' + filename + '...')
-            df = pd.read_csv(
+            logging.info('parsing ' + filename + '...')
+            n = row_count(filename)
+            lastRow = pd.read_csv(
+                filename,
+                header=None,
+                skiprows=n - 1,
+                names=INPUT_CSV_COLUMNS,
+            )
+            add_features(lastRow)
+            lastTimestamp = toMillisecond(lastRow)
+
+            dfChunks = pd.read_csv(
                 filename,
                 header=None,
                 names=INPUT_CSV_COLUMNS,
+                chunksize=CHUNK_SIZE
             )
-            add_features(df)
-
-            firstRow = df.head(1)
-            lastRow = df.tail(1)
+            firstRow = dfChunks.get_chunk(1)
+            add_features(firstRow)
             firstTimestamp = toMillisecond(firstRow)
-            lastTimestamp = toMillisecond(lastRow)
             totalLife = int(lastTimestamp) - int(firstTimestamp)
-            currentTimestamp = toMillisecond(df)
-            df['rul'] = int(lastTimestamp) - currentTimestamp
+            chunk_count = int(math.ceil(float(n) / CHUNK_SIZE))
+            chunks = 0
+            for dfChunk in dfChunks:
+                chunks = chunks + 1
+                logging.info('parsing chunk %d/%d' % (chunks, chunk_count))
 
-            destDir = os.path.join(DEST_DIR, dataset)
-            if not os.path.exists(destDir):
-                os.makedirs(destDir)
-            df.to_csv(
-                os.path.join(
-                    destDir,
-                    os.path.basename(filename)
-                ),
-                header=False,
-                index=False,
-                columns=OUTPUT_CSV_COLUMNS
-            )
+                add_features(dfChunk)
+                currentTimestamp = toMillisecond(dfChunk)
+                dfChunk['rul'] = int(lastTimestamp) - currentTimestamp
+
+                destDir = os.path.join(DEST_DIR, dataset)
+                if not os.path.exists(destDir):
+                    os.makedirs(destDir)
+                dfChunk.to_csv(
+                    os.path.join(
+                        destDir,
+                        os.path.basename(filename)
+                    ),
+                    mode='a',
+                    header=False,
+                    index=False,
+                    columns=OUTPUT_CSV_COLUMNS
+                )
 
 main()
