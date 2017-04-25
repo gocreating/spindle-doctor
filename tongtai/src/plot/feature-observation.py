@@ -96,14 +96,14 @@ CONFIG_MAP = {
         'marker': {
             'color': 'blue',
         },
-        'ylim': [-0.03, 1],
+        'ylim': [-1, 1.2],
         'label': 'ss_acc_normal',
     },
     'ss_curr_normal': {
         'marker': {
             'color': 'blue',
         },
-        'ylim': [-0.15, 1],
+        'ylim': [-1, 1.2],
         'label': 'ss_curr_normal',
     },
     'x_diff': {
