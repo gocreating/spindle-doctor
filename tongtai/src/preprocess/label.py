@@ -4,6 +4,7 @@ import math
 import sys
 import glob
 import os
+import numpy as np
 import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
@@ -13,40 +14,42 @@ DEST_DIR = '../../build/data/labeled'
 CHUNK_SIZE = 10000
 INPUT_CSV_COLUMNS = ['timestamp', 'x', 'y', 'z', 'u', 'v', 'w']
 OUTPUT_CSV_COLUMNS = [
-    'timestamp', 'yyyy', 'MM', 'dd', 'hh', 'mm', 'ss', 'fff',
+    'datetime',
     'x', 'y', 'z',
-    'uInG', 'vInG', 'wInG',
+    'u', 'v', 'w',
     'rul',
-    'ss_acc',
-    'ss_curr',
-    'ss_acc_normal',
-    'ss_curr_normal',
+    # 'ss_acc',
+    # 'ss_curr',
+    # 'ss_acc_normal',
+    # 'ss_curr_normal',
+]
+DATETIME_FIELDS = [
+    'year',
+    'month',
+    'day',
+    'hour',
+    'minute',
+    'second',
+    'ms',
 ]
 
 def add_features(df):
     # format timestamp
-    df[[
-        'yyyy',
-        'MM',
-        'dd',
-        'hh',
-        'mm',
-        'ss',
-        'fff',
-    ]] = df['timestamp'].apply(timestampSplitter)
+    df[DATETIME_FIELDS] = df['timestamp'].apply(timestampSplitter)
+    df['datetime'] = pd.to_datetime(df[DATETIME_FIELDS])
 
     # transform current unit
-    df['uInG'] = df['u'] * 0.004
-    df['vInG'] = df['v'] * 0.004
-    df['wInG'] = df['w'] * 0.004
+    df['u'] = df['u'] * 0.004
+    df['v'] = df['v'] * 0.004
+    df['w'] = df['w'] * 0.004
 
     # compute sum of squared
-    df['ss_acc'] = df['x'] ** 2 + df['y'] ** 2 + df['z'] ** 2
-    df['ss_curr'] = df['uInG'] ** 2 + df['vInG'] ** 2 + df['wInG'] ** 2
-
-    # compute normalization
-    df['ss_acc_normal'] = (df['ss_acc'] - df['ss_acc'].mean()) / (df['ss_acc'].max() - df['ss_acc'].min())
-    df['ss_curr_normal'] = (df['ss_curr'] - df['ss_curr'].mean()) / (df['ss_curr'].max() - df['ss_curr'].min())
+    # df['ss_acc'] = df['x'] ** 2 + df['y'] ** 2 + df['z'] ** 2
+    # df['ss_curr'] = df['u'] ** 2 + df['v'] ** 2 + df['w'] ** 2
+    #
+    # # compute normalization
+    # df['ss_acc_normal'] = (df['ss_acc'] - df['ss_acc'].mean()) / (df['ss_acc'].max() - df['ss_acc'].min())
+    # df['ss_curr_normal'] = (df['ss_curr'] - df['ss_curr'].mean()) / (df['ss_curr'].max() - df['ss_curr'].min())
 
 def timestampSplitter(timestamp):
     return pd.Series([
@@ -58,16 +61,6 @@ def timestampSplitter(timestamp):
         (timestamp / 1000) % 100,
         timestamp % 1000,
     ])
-
-def toMillisecond(rowOrDataframe):
-    return (
-        (
-            rowOrDataframe['hh'] * 3600 +
-            rowOrDataframe['mm'] * 60 +
-            rowOrDataframe['ss']
-        ) * 1000 +
-        rowOrDataframe['fff']
-    )
 
 # http://stackoverflow.com/questions/845058/how-to-get-line-count-cheaply-in-python
 def row_count(filename):
@@ -89,7 +82,7 @@ def main():
                 names=INPUT_CSV_COLUMNS,
             )
             add_features(lastRow)
-            lastTimestamp = toMillisecond(lastRow)
+            lastDatetime = lastRow['datetime'][0]
 
             dfChunks = pd.read_csv(
                 filename,
@@ -97,10 +90,7 @@ def main():
                 names=INPUT_CSV_COLUMNS,
                 chunksize=CHUNK_SIZE
             )
-            firstRow = dfChunks.get_chunk(1)
-            add_features(firstRow)
-            firstTimestamp = toMillisecond(firstRow)
-            totalLife = int(lastTimestamp) - int(firstTimestamp)
+
             chunk_count = int(math.ceil(float(n) / CHUNK_SIZE))
             chunks = 0
             for dfChunk in dfChunks:
@@ -108,8 +98,8 @@ def main():
                 logging.info('parsing chunk %d/%d' % (chunks, chunk_count))
 
                 add_features(dfChunk)
-                currentTimestamp = toMillisecond(dfChunk)
-                dfChunk['rul'] = int(lastTimestamp) - currentTimestamp
+                currentDatetime = dfChunk['datetime']
+                dfChunk['rul'] = (lastDatetime - currentDatetime).astype('timedelta64[ms]')
 
                 destDir = os.path.join(DEST_DIR, dataset)
                 if not os.path.exists(destDir):
