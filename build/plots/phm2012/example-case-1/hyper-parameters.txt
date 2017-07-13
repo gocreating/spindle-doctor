@@ -1,0 +1,19 @@
+BATCH_SIZE = 128
+N_INPUT = 2 # channels
+N_STEPS = 6 # timesteps
+N_HIDDEN = 64 # hidden layer num of features
+N_OUTPUT = 1
+RNN_DEPTH = 2
+BREAK_POINTS = [{
+    'epochs': [1, 20],
+    'learning_rate': 0.01,
+}, {
+    'epochs': [21, 40],
+    'learning_rate': 0.0001,
+}, {
+    'epochs': [41, 100],
+    'learning_rate': 0.00001,
+}]
+
+self.prediction = linear_combination_of_outputs
+self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.error)
