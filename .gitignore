@@ -1,0 +1,4 @@
+tongtai/build/data
+*.pyc
+build/data
+.remote-sync.json
