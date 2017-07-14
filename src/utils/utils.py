@@ -163,3 +163,7 @@ def get_row_count(filename):
 def get_chunk_count(filename, chunk_size):
     n = get_row_count(filename)
     return int(math.ceil(float(n) / chunk_size)), n
+
+def get_batch_count(arr, batch_size):
+    length = arr.shape[0]
+    return int(math.ceil(float(length) / batch_size)), length
