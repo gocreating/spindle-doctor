@@ -28,8 +28,9 @@ class Model:
             self.compute_mse_cost()
             # self.compute_entropy_cost()
 
-        with tf.name_scope('train_step'):
-            self.add_train_step()
+        if not feed_previous:
+            with tf.name_scope('train_step'):
+                self.add_train_step()
 
     def add_input_layer(self):
         self.xs = tf.placeholder(
@@ -52,7 +53,8 @@ class Model:
             num_units=output_size,
             forget_bias=1.0,
             state_is_tuple=True,
-            activation=tf.nn.sigmoid
+            activation=tf.nn.sigmoid,
+            reuse=tf.get_variable_scope().reuse
         )
         return rnn.DropoutWrapper(cell, input_keep_prob=1 - self.dropout_rate)
 

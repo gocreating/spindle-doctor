@@ -129,16 +129,28 @@ def visualize_dataset(model, sess, epoch, dataset_name):
 
 if __name__ == '__main__':
     read_dataset()
-    model = Model(
-        args.step_size,
-        args.input_size,
-        args.hidden_size,
-        args.output_size,
-        args.layer_depth,
-        args.batch_size,
-        args.dropout_rate,
-        False
-    )
+    with tf.variable_scope('anomaly-detection', reuse=None):
+        model = Model(
+            args.step_size,
+            args.input_size,
+            args.hidden_size,
+            args.output_size,
+            args.layer_depth,
+            args.batch_size,
+            args.dropout_rate,
+            False
+        )
+    with tf.variable_scope('anomaly-detection', reuse=True):
+        model_production = Model(
+            args.step_size,
+            args.input_size,
+            args.hidden_size,
+            args.output_size,
+            args.layer_depth,
+            args.batch_size,
+            args.dropout_rate,
+            True
+        )
 
     # start session
     sess = tf.InteractiveSession(
@@ -159,9 +171,9 @@ if __name__ == '__main__':
         start_time = time.time()
 
         # before training
-        train_mse = visualize_dataset(model, sess, 0, 'train')
-        visualize_dataset(model, sess, 0, 'anomalous')
-        validate_mse = eval_mse(model, sess, 'validate')
+        train_mse = visualize_dataset(model_production, sess, 0, 'train')
+        visualize_dataset(model_production, sess, 0, 'anomalous')
+        validate_mse = eval_mse(model_production, sess, 'validate')
         print('Epoch\t%d, Batch\t%d, Elapsed time\t%.1fs, Train MSE\t%s, Validate MSE\t%s, Min Train MSE\t%s' % (
             0, 0, 0, train_mse, validate_mse, min_train_mse
         ))
@@ -194,9 +206,9 @@ if __name__ == '__main__':
                         ))
 
                 elapsed_time = time.time() - start_time
-                train_mse = visualize_dataset(model, sess, epoch, 'train')
-                visualize_dataset(model, sess, epoch, 'anomalous')
-                validate_mse = eval_mse(model, sess, 'validate')
+                train_mse = visualize_dataset(model_production, sess, epoch, 'train')
+                visualize_dataset(model_production, sess, epoch, 'anomalous')
+                validate_mse = eval_mse(model_production, sess, 'validate')
                 if train_mse < min_train_mse:
                     min_train_mse = train_mse
                 print('Epoch\t%d, Batch\t%d, Elapsed time\t%.1fs, Train MSE\t%s, Validate MSE\t%s, Min Train MSE\t%s' % (
