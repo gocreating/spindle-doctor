@@ -51,13 +51,13 @@ if __name__ == '__main__':
     for src, label, color in zip(args.srcs, args.labels, colors):
         df = pd.read_csv(
             src,
-            names=['epochs', 'loss', 'elapsed_time']
+            names=['epochs', 'train_loss', 'validate_loss', 'elapsed_time']
         )
         sample_size = min(len(df), args.sample_size) if args.sample_size else len(df)
         label = os.path.basename(src).split('.')[0] if label == '' else label
         plt.plot(
             df['epochs'][0:sample_size],
-            df['loss'][0:sample_size],
+            df['train_loss'][0:sample_size],
             c=color,
             label=label
         )
