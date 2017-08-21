@@ -56,6 +56,10 @@ def get_args():
         type=int
     )
     parser.add_argument(
+        '--column',
+        type=str
+    )
+    parser.add_argument(
         '--columns',
         nargs='+',
         type=str
