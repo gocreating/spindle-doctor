@@ -1,10 +1,14 @@
 """
 Usage:
-python label.py --scope phm2012
+python label.py \
+    --scope phm2012 \
+    --thresholds -3.5 3.0 0.05
 """
 import os
 import glob
+import numpy as np
 import pandas as pd
+from bisect import bisect_left
 from utils.utils import log, prepare_directory, get_args, get_chunk_count
 from utils.preprocess import get_datetime
 
@@ -19,6 +23,8 @@ def main():
     filenames = glob.glob(os.path.join(
         src_dir, '*.csv'
     ))
+    threshold_step = args.thresholds[2]
+    thresholds = np.arange(args.thresholds[0], args.thresholds[1], threshold_step)
 
     for filename in filenames:
         log('parsing %s in scope %s' % (os.path.basename(filename), args.scope))
@@ -41,6 +47,8 @@ def main():
 
             df_chunk['rul'] = (last_datetime -  df_chunk['datetime']).astype('timedelta64[us]') / 1000000
             df_chunk['rulp'] = df_chunk['rul'] / total_seconds
+            df_chunk['level_x'] = [bisect_left(thresholds, element) for element in df_chunk['x']]
+            df_chunk['level_y'] = [bisect_left(thresholds, element) for element in df_chunk['y']]
 
             df_chunk.to_csv(
                 os.path.join(
