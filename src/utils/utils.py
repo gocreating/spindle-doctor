@@ -92,6 +92,16 @@ def get_args():
         type=int
     )
     parser.add_argument(
+        '--embedding-size',
+        dest='embedding_size',
+        type=int
+    )
+    parser.add_argument(
+        '--symbol-size',
+        dest='symbol_size',
+        type=int
+    )
+    parser.add_argument(
         '--output-size',
         dest='output_size',
         type=int
