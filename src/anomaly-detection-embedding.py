@@ -12,7 +12,9 @@ python anomaly-detection-embedding.py \
     --dropout-rate 0.1 \
     --learning-rates \
         1   1000   0.001 \
-    --sample-size 128 # must >= batch_size and will be cut to match batch_size
+    --sample-size 128 # must >= batch_size and will be cut to match batch_size \
+    --src ../build/models/phm2012/ad-phm-embedding/model \
+    --dest ../build/models/phm2012/ad-phm-embedding/model
 """
 import sys
 import os
@@ -155,8 +157,17 @@ if __name__ == '__main__':
         # config=tf.ConfigProto(intra_op_parallelism_threads=N_THREADS)
     )
 
-    # initize variable
-    sess.run(tf.global_variables_initializer())
+    # prepare model import or export
+    if args.src:
+        importSaver = tf.train.Saver()
+        importSaver.restore(sess, args.src)
+    else:
+        # initize variable
+        sess.run(tf.global_variables_initializer())
+
+    if args.dest:
+        exportSaver = tf.train.Saver()
+        prepare_directory(os.path.dirname(args.dest))
 
     filename = args.log or os.path.join(
         prepare_directory(os.path.join(
@@ -210,6 +221,8 @@ if __name__ == '__main__':
                 validate_acc = eval_acc(model, sess, 'validate')
                 if train_acc > max_train_acc:
                     max_train_acc = train_acc
+                    if args.dest:
+                        exportSaver.save(sess, args.dest)
                 print('Epoch\t%d, Batch\t%d, Elapsed time\t%.1fs, Train Acc\t%s, Validate Acc\t%s, Anomalous Acc\t%s, Max Train Acc\t%s' % (
                     epoch, batch_count, elapsed_time, train_acc, validate_acc, anomalous_acc, max_train_acc
                 ))
