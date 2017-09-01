@@ -26,6 +26,20 @@ python visualize-loss.py \
         "rnn-8 (double rnn-7 depth)" \
         "rnn-9 (half rnn-7 depth)" \
         "rnn-10 (10x rnn-7 learning rate)" \
+    --names \
+        "epochs" "train_loss" "validate_loss" "elapsed_time"
+    --columns \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
+        "train_loss" \
     --dest "..\build\plots\phm2012\rnn-phm\loss.png" \
     --x-label "Epochs" \
     --y-label "Train Loss (MSE)" \
@@ -48,16 +62,17 @@ args = get_args()
 if __name__ == '__main__':
     count = len(args.srcs)
     colors = cm.rainbow(np.linspace(0, 1, count))
-    for src, label, color in zip(args.srcs, args.labels, colors):
+    for src, label, column, color in zip(args.srcs, args.labels, args.columns, colors):
         df = pd.read_csv(
             src,
-            names=['epochs', 'train_loss', 'validate_loss', 'elapsed_time']
+            names=args.names
         )
         sample_size = min(len(df), args.sample_size) if args.sample_size else len(df)
         label = os.path.basename(src).split('.')[0] if label == '' else label
         plt.plot(
             df['epochs'][0:sample_size],
-            df['train_loss'][0:sample_size],
+            # df['train_loss'][0:sample_size],
+            df[column][0:sample_size],
             c=color,
             label=label
         )

@@ -156,6 +156,11 @@ def get_args():
         type=str
     )
     parser.add_argument(
+        '--names',
+        nargs='+',
+        type=str
+    )
+    parser.add_argument(
         '--scope',
         type=str,
         choices=['phm2012', 'tongtai']
