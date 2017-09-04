@@ -14,7 +14,16 @@ from utils.utils import log, prepare_directory
 
 SCOPE = 'tongtai'
 SRC_DIR = '../../build/data/tongtai/joined'
-DATASETS_TO_PARSE = ['2017-07-18-168000rpm']
+DATASETS_TO_PARSE = [
+    # '2017-07-18-168000rpm',
+    '2017-08-17-0.35mm',
+    '2017-08-21-0.5mm',
+    '2017-08-21-0.8mm',
+    '2017-08-21-1.0mm',
+    '2017-08-21-1.55mm',
+    '2017-08-21-2.0mm',
+    '2017-08-21-3.175mm',
+]
 CHUNK_SIZE = 100000
 INPUT_CSV_COLUMNS = ['timestamp', 'x', 'y', 'z', 'u', 'v', 'w']
 OUTPUT_CSV_COLUMNS = ['datetime', 'x', 'y', 'z', 'u', 'v', 'w']

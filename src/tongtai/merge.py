@@ -35,7 +35,16 @@ def main():
 
             channel_map = [None, 'x', 'y', 'z', 'u', 'v', 'w']
             channels = [1, 2, 3] if dataType == 'acc' else [4, 5, 6]
-            if dataset == '2017-07-18-168000rpm':
+            if dataset in [
+                '2017-07-18-168000rpm',
+                '2017-08-17-0.35mm',
+                '2017-08-21-0.5mm',
+                '2017-08-21-0.8mm',
+                '2017-08-21-1.0mm',
+                '2017-08-21-1.55mm',
+                '2017-08-21-2.0mm',
+                '2017-08-21-3.175mm',
+            ]:
                 channels = [4, 5, 6] if dataType == 'acc' else [1, 2, 3]
                 channel_map = [None, 'u', 'v', 'w', 'x', 'y', 'z']
 
@@ -52,6 +61,19 @@ def main():
                         header=None
                     )
                     if dataset == '2017-07-18-168000rpm':
+                        df['timestamp'] = pd.to_datetime(
+                            df['timestamp'],
+                            format='%m/%d/%Y %H:%M:%S.%f'
+                        ).astype(np.int64) // int(1e6)
+                    elif dataset in [
+                        '2017-08-17-0.35mm',
+                        '2017-08-21-0.5mm',
+                        '2017-08-21-0.8mm',
+                        '2017-08-21-1.0mm',
+                        '2017-08-21-1.55mm',
+                        '2017-08-21-2.0mm',
+                        '2017-08-21-3.175mm',
+                    ]:
                         df['timestamp'] = pd.to_datetime(
                             df['timestamp'],
                             format='%m/%d/%Y %H:%M:%S.%f'
