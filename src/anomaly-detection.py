@@ -12,7 +12,7 @@ python anomaly-detection.py \
     --dropout-rate 0.1 \
     --learning-rates \
         1   1000   0.001 \
-    --sample-size 10000
+    --sample-size 100
 """
 import sys
 import os
@@ -33,7 +33,7 @@ mpl.rcParams['agg.path.chunksize'] = 10000
 # network parameters
 # N_THREADS = 16
 
-Y_LIMIT = [-2, 2]
+Y_LIMIT = [0, 2]
 
 # to be caculated
 dataset = {
@@ -112,7 +112,7 @@ def visualize_dataset(model, sess, epoch, dataset_name):
     plt.ylim(Y_LIMIT)
     plt.scatter(x_axis, ground_truth, color='green', marker='x', s=12)
     plt.scatter(x_axis, predicted, color='blue', s=10, linewidth=0)
-    plt.plot(x_axis, predicted - ground_truth, color='red', linestyle='--', linewidth=1)
+    plt.plot(x_axis, np.absolute(predicted - ground_truth), color='red', linestyle='--', linewidth=1)
 
     mse = eval_mse(model, sess, dataset_name)
 
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                 print('Epoch\t%d, Batch\t%d, Elapsed time\t%.1fs, Train MSE\t%s, Validate MSE\t%s, Min Train MSE\t%s' % (
                     epoch, batch_count, elapsed_time, train_mse, validate_mse, min_train_mse
                 ))
-                fd_log.write('{0},{1},{2}\n'.format(
+                fd_log.write('{0},{1},{2},{3}\n'.format(
                     epoch, train_mse, validate_mse, elapsed_time
                 ))
                 fd_log.flush()
