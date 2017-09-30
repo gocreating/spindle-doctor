@@ -10,7 +10,9 @@ python test-anomaly-detection-embedding.py \
     --batch-size 128 \
     --layer-depth 1 \
     --dropout-rate 0.1 \
-    --src ../build/models/phm2012/ad-phm-embedding/model
+    --src ../build/models/phm2012/ad-phm-embedding/model \
+    --test-src ../build/data/tongtai/labeled/2017-08-21-0.5mm-working.csv \
+    --batch-step 250
 """
 import sys
 import os
@@ -38,12 +40,8 @@ args = get_args()
 def read_dataset():
     global dataset
 
-    file_path = os.path.join(
-        '../build/data',
-        args.scope, 'labeled/2017-08-17-0.35mm-working.csv'
-    )
     table = np.genfromtxt(
-        file_path,
+        args.test_src,
         delimiter=',',
         skip_header=1,
         usecols=(9,) # level_x
@@ -67,19 +65,26 @@ def visualize(xs, ys):
     dest_dir = prepare_directory(os.path.join(
         '../build/plots',
         args.scope,
-        args.name
+        args.name,
+        os.path.basename(args.test_src).rsplit('.', 1)[0]
     ))
 
     plt.ylim([0, 1])
     plt.ylabel('Accuracy')
     plt.xlabel('Index')
     title = 'Test Accuracy'
-    plt.scatter(xs, ys, color='purple', s=0.1)
-    # plt.plot(xs, ys, color='purple', linestyle='--', linewidth=1)
+
+    if args.batch_step < 200:
+        plt.scatter(xs, ys, color='purple', s=0.1)
+    else:
+        plt.plot(xs, ys, color='purple', linestyle='--', linewidth=1)
 
     plt.title(title)
     plt.savefig(
-        os.path.join(dest_dir, 'test-accuracy.png'),
+        os.path.join(
+            dest_dir,
+            'test-accuracy-batch_step-{0}.png'.format(args.batch_step)
+        ),
         dpi=400,
         format='png'
     )
@@ -116,8 +121,7 @@ if __name__ == '__main__':
     plot_ys = []
 
     start_time = time.time()
-    # for batch_idx in range(0, batch_count, 250):
-    for batch_idx in range(0, batch_count):
+    for batch_idx in range(0, batch_count, args.batch_step):
         begin_idx = batch_idx * args.batch_size
         end_idx = min(begin_idx + args.batch_size, data_size)
         ground_truth = dataset['ordered'][begin_idx: end_idx]

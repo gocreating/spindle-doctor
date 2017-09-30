@@ -22,6 +22,11 @@ def get_args():
         type=str
     )
     parser.add_argument(
+        '--test-src',
+        dest='test_src',
+        type=str
+    )
+    parser.add_argument(
         '--srcs',
         nargs='+',
         type=str
@@ -129,6 +134,12 @@ def get_args():
         '--sample-size',
         dest='sample_size',
         type=int
+    )
+    parser.add_argument(
+        '--batch-step',
+        dest='batch_step',
+        type=int,
+        default=1
     )
     parser.add_argument(
         '--x-label',
