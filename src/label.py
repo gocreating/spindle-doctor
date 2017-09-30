@@ -2,7 +2,8 @@
 Usage:
 python label.py \
     --scope phm2012 \
-    --thresholds -3.5 3.0 0.05
+    --thresholds -3.5 3.0 0.05 \
+    --src-breakpoint "..\build\meta\phm2012\anomaly-detection-unequal\breakpoint.csv"
 """
 import os
 import glob
@@ -25,7 +26,7 @@ def main():
     ))
     threshold_step = args.thresholds[2]
     thresholds = np.arange(args.thresholds[0], args.thresholds[1], threshold_step)
-
+    df_breakpoints = pd.read_csv(args.src_breakpoint)
     for filename in filenames:
         log('parsing %s in scope %s' % (os.path.basename(filename), args.scope))
 
@@ -49,6 +50,8 @@ def main():
             df_chunk['rulp'] = df_chunk['rul'] / total_seconds
             df_chunk['level_x'] = [bisect_left(thresholds, element) for element in df_chunk['x']]
             df_chunk['level_y'] = [bisect_left(thresholds, element) for element in df_chunk['y']]
+            df_chunk['symbol_x'] = [bisect_left(df_breakpoints['x'], element) for element in df_chunk['x']]
+            df_chunk['symbol_y'] = [bisect_left(df_breakpoints['y'], element) for element in df_chunk['x']]
 
             df_chunk.to_csv(
                 os.path.join(

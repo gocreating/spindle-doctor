@@ -32,6 +32,11 @@ def get_args():
         type=str
     )
     parser.add_argument(
+        '--src-breakpoint',
+        dest='src_breakpoint',
+        type=str
+    )
+    parser.add_argument(
         '--dest-dir',
         dest='dest_dir',
         type=str
