@@ -70,6 +70,11 @@ def get_args():
         type=str
     )
     parser.add_argument(
+        '--use-column',
+        dest='use_column',
+        type=int
+    )
+    parser.add_argument(
         '--columns',
         nargs='+',
         type=str
