@@ -51,7 +51,7 @@ def main():
             df_chunk['level_x'] = [bisect_left(thresholds, element) for element in df_chunk['x']]
             df_chunk['level_y'] = [bisect_left(thresholds, element) for element in df_chunk['y']]
             df_chunk['symbol_x'] = [bisect_left(df_breakpoints['x'], element) for element in df_chunk['x']]
-            df_chunk['symbol_y'] = [bisect_left(df_breakpoints['y'], element) for element in df_chunk['x']]
+            df_chunk['symbol_y'] = [bisect_left(df_breakpoints['y'], element) for element in df_chunk['y']]
 
             df_chunk.to_csv(
                 os.path.join(

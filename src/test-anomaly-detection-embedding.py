@@ -10,6 +10,7 @@ python test-anomaly-detection-embedding.py \
     --batch-size 128 \
     --layer-depth 1 \
     --dropout-rate 0.1 \
+    --use-column 9 # level_x \
     --src ../build/models/phm2012/ad-phm-embedding/model \
     --test-src ../build/data/tongtai/labeled/2017-08-21-0.5mm-working.csv \
     --batch-step 250
@@ -44,7 +45,7 @@ def read_dataset():
         args.test_src,
         delimiter=',',
         skip_header=1,
-        usecols=(9,) # level_x
+        usecols=(args.use_column,)
     )
     for sample_from_idx in range(0, table.shape[0] - args.step_size + 1):
         table_sample = table[sample_from_idx: sample_from_idx + args.step_size]
