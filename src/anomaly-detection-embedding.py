@@ -36,8 +36,6 @@ mpl.rcParams['agg.path.chunksize'] = 10000
 # network parameters
 # N_THREADS = 16
 
-Y_LIMIT = [0, 133]
-
 # to be caculated
 dataset = {
     'ordered': [],
@@ -47,6 +45,8 @@ dataset = {
 }
 
 args = get_args()
+
+Y_LIMIT = [0, args.symbol_size + 1]
 
 def read_dataset():
     global dataset
