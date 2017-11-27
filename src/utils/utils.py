@@ -75,9 +75,20 @@ def get_args():
         type=int
     )
     parser.add_argument(
+        '--use-columns',
+        dest='use_columns',
+        nargs='+',
+        type=int
+    )
+    parser.add_argument(
         '--columns',
         nargs='+',
         type=str
+    )
+    parser.add_argument(
+        '--ground-truth-column',
+        dest='ground_truth_column',
+        type=int
     )
     parser.add_argument(
         '--abs',
@@ -169,6 +180,12 @@ def get_args():
         '--labels',
         nargs='+',
         type=str
+    )
+    parser.add_argument(
+        '--ylim',
+        nargs='+',
+        type=float,
+        default=[0, 1]
     )
 
     # other parameters

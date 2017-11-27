@@ -15,6 +15,8 @@ python rnn.py \
         51  100  0.00125 \
         101 1000 0.000125 \
     --sample-size 10000
+    --src ../build/models/phm2012/rnn-phm/model \
+    --dest ../build/models/phm2012/rnn-phm/model
 """
 import sys
 import os
@@ -76,7 +78,8 @@ def read_dataset():
 
     training_file = os.path.join(
         '../build/data',
-        args.scope, 'labeled/Learning_set-Bearing3_1-acc.csv'
+        # args.scope, 'labeled/Learning_set-Bearing3_1-acc.csv'
+        args.scope, 'labeled/2017-08-21-0.8mm-working.csv'
     )
     df_training = pd.read_csv(
         training_file,
@@ -174,8 +177,8 @@ def visualize(model, sess, epoch, train_mse):
         predicted = np.reshape(ps, (data_size))
 
     plt.ylim(Y_LIMIT)
-    plt.scatter(x_axis, predicted, color='red', s=1, alpha=0.5, lw=0)
     plt.plot(x_axis, ground_truth, 'g.')
+    plt.plot(x_axis, predicted, color='red', linestyle='--', linewidth=1)
     title = 'epoch-{0}\nmse = {1}'.format(epoch, train_mse)
     plt.title(title)
     plt.savefig(
@@ -202,8 +205,17 @@ if __name__ == '__main__':
         # config=tf.ConfigProto(intra_op_parallelism_threads=N_THREADS)
     )
 
-    # initize variable
-    sess.run(tf.global_variables_initializer())
+    # prepare model import or export
+    if args.src:
+        importSaver = tf.train.Saver()
+        importSaver.restore(sess, args.src)
+    else:
+        # initize variable
+        sess.run(tf.global_variables_initializer())
+
+    if args.dest:
+        exportSaver = tf.train.Saver()
+        prepare_directory(os.path.dirname(args.dest))
 
     filename = args.log or os.path.join(
         prepare_directory(os.path.join(
@@ -249,6 +261,8 @@ if __name__ == '__main__':
                 train_mse = eval_mse(model, sess)
                 if train_mse < min_mse:
                     min_mse = train_mse
+                    if args.dest:
+                        exportSaver.save(sess, args.dest)
                 print('Epoch\t%d, Batch\t%d, Elapsed time\t%.1fs, MSE\t%s, Min MSE\t%s' % (
                 epoch, batch_count, elapsed_time, train_mse, min_mse
                 ))

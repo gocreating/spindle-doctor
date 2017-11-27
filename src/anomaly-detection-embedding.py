@@ -53,14 +53,18 @@ def read_dataset():
 
     file_path = os.path.join(
         '../build/data',
-        args.scope, 'labeled/Learning_set-Bearing3_1-acc.csv'
+        # args.scope, 'labeled/Learning_set-Bearing3_1-acc.csv'
+        args.scope, 'labeled/2017-08-17-0.35mm-working.csv'
     )
     table = np.genfromtxt(
         file_path,
         delimiter=',',
         skip_header=1,
-        usecols=(args.use_column,)
+        usecols=(args.use_column,) # ,
+        # max_rows=100000
     )
+    table = table[table > 31]
+    table = table[table < 224]
     for sample_from_idx in range(0, table.shape[0] - args.step_size + 1):
         table_sample = table[sample_from_idx: sample_from_idx + args.step_size]
         dataset['ordered'].append(table_sample)
@@ -68,7 +72,7 @@ def read_dataset():
             log('%2.0f%% loaded' % ((float(sample_from_idx) / (table.shape[0] - args.step_size + 1)) * 100))
 
     # train, validate split
-    dataset_health, dataset['anomalous'] = np.split(dataset['ordered'], [int(.9 * len(dataset['ordered']))])
+    dataset_health, dataset['anomalous'] = np.split(dataset['ordered'], [int(.7 * len(dataset['ordered']))])
 
     # shuffle
     np.random.shuffle(dataset_health)

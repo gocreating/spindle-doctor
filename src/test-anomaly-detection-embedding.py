@@ -70,7 +70,7 @@ def visualize(xs, ys):
         os.path.basename(args.test_src).rsplit('.', 1)[0]
     ))
 
-    plt.ylim([0, 1])
+    plt.ylim(args.ylim)
     plt.ylabel('Accuracy')
     plt.xlabel('Index')
     title = 'Test Accuracy'
@@ -112,11 +112,6 @@ if __name__ == '__main__':
     importSaver = tf.train.Saver()
     importSaver.restore(sess, args.src)
 
-    filename = args.log or os.path.join(
-        prepare_directory(os.path.join(
-            '../build/plots', args.scope, args.name)
-        ), 'log.csv'
-    )
     batch_count, data_size = get_batch_count(dataset['ordered'], args.batch_size)
     plot_xs = []
     plot_ys = []
