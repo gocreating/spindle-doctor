@@ -27,3 +27,6 @@ def unison_shuffled_copies(a, b):
     assert len(a) == len(b)
     p = np.random.permutation(len(a))
     return a[p], b[p]
+
+def get_windowed_data(raw, window_size):
+    return np.array([raw[k - window_size: k] for k in range(window_size, raw.shape[0] + 1)])

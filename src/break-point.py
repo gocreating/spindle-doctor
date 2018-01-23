@@ -29,6 +29,7 @@ args = get_args()
 
 if __name__ == '__main__':
     breakpoints = {}
+    equal_breakpoints = {}
     for column in args.columns:
         lens = 0
         sums = 0
@@ -40,14 +41,6 @@ if __name__ == '__main__':
 
         for src in args.srcs:
             log('phase 1 of ' + src)
-            # check the correctness
-            # df = pd.read_csv(src)
-            # print(len(df[column]))
-            # print(df[column].sum())
-            # print(df[column].mean())
-            # print(df[column].std())
-            # print(df[column].min())
-            # print(df[column].max())
             df_chunks = pd.read_csv(
                 src,
                 chunksize=args.chunk_size
@@ -80,13 +73,13 @@ if __name__ == '__main__':
         std = (sumOfSquaredDifference / lens) ** 0.5
 
         n = norm(mean, std)
-        step = (0.9999 - 0.0001) / (args.symbol_size - 2)
+        step = (0.99999999999 - 0.00000000001) / (args.symbol_size - 1)
         breakpoints[column] = []
-        for probability in np.arange(0.0001, 0.9999, step):
+        for probability in np.arange(0.00000000001, 0.99999999999, step):
             # ppf(percent point function) is the inverse function of pdf(probability density function)
             # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html
             breakpoints[column].append(n.ppf(probability))
-
+        equal_breakpoints[column] = np.linspace(minValue, maxValue, args.symbol_size + 1)[1:-1]
         print('==== Report ====')
         print('lens\t', lens)
         print('sums\t', sums)
@@ -99,11 +92,20 @@ if __name__ == '__main__':
         print('breakpoints\t', breakpoints[column])
 
     df_breakpoints = pd.DataFrame(breakpoints)
+    df_equal_breakpoints = pd.DataFrame(equal_breakpoints)
     dest_dir = prepare_directory(args.dest_dir)
     df_breakpoints.to_csv(
         os.path.join(
             dest_dir,
-            'breakpoint.csv'
+            'breakpoint-{0}.csv'.format(args.symbol_size)
+        ),
+        header=True,
+        index=False
+    )
+    df_equal_breakpoints.to_csv(
+        os.path.join(
+            dest_dir,
+            'equal-breakpoint-{0}.csv'.format(args.symbol_size)
         ),
         header=True,
         index=False

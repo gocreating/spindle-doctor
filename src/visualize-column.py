@@ -33,26 +33,33 @@ if __name__ == '__main__':
         args.columns,
         (-1, 2)
     )
+    plt.figure(figsize=(10, 6))
     for src, label, column, color in zip(args.srcs, args.labels, columns, colors):
         df = pd.read_csv(src)
         sample_size = min(len(df), args.sample_size) if args.sample_size else len(df)
         label = os.path.basename(src).split('.')[0] if label == '' else label
         df['datetime'] = pd.to_datetime(df['datetime']).astype(np.int64) // int(1e6)
+        xs = np.linspace(
+            0,
+            len(df) - 1,
+            num=8000,
+            dtype=int
+        )
         plt.plot(
-            df[column[0]][0:sample_size],
-            df[column[1]][0:sample_size],
+            np.array(df[column[0]][0:sample_size])[xs],
+            np.array(df[column[1]][0:sample_size])[xs],
             c=color,
             label=label
         )
-    plt.xlabel(args.x_label)
-    plt.ylabel(args.y_label)
-    plt.title(args.title)
-    plt.legend()
+    plt.xlabel(args.x_label, fontsize=20)
+    plt.ylabel(args.y_label, fontsize=20)
+    plt.title(args.title, fontsize=20)
+    plt.legend(fontsize=16)
 
     dest_dir = prepare_directory(os.path.dirname(args.dest))
     plt.savefig(
         args.dest,
-        dpi=400,
-        format='png'
+        dpi=800,
+        format='eps'
     )
     plt.clf()

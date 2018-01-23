@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.contrib import rnn, legacy_seq2seq
 
 class Model:
-    def __init__(self, step_size, hidden_size, embedding_size, symbol_size, layer_depth, batch_size, dropout_rate):
+    def __init__(self, step_size, hidden_size, embedding_size, symbol_size, layer_depth, batch_size, dropout_rate, mse_weights):
         self.step_size = step_size
         self.hidden_size = hidden_size
         self.embedding_size = embedding_size
@@ -11,6 +11,7 @@ class Model:
         self.layer_depth = layer_depth
         self.batch_size = batch_size
         self.dropout_rate = dropout_rate
+        self.mse_weights = mse_weights
 
         with tf.name_scope('input_layer'):
             self.add_input_layer()
@@ -23,6 +24,7 @@ class Model:
 
         with tf.name_scope('compute_cost'):
             self.compute_entropy_cost()
+            self.compute_mse_cost()
 
         with tf.name_scope('train_step'):
             self.add_train_step()
@@ -46,6 +48,7 @@ class Model:
             tf.float32,
             name='learning_rate'
         )
+        self.mse_weights = tf.constant(self.mse_weights)
 
     def lstm_cell(self, output_size):
         cell = rnn.BasicLSTMCell(
@@ -101,6 +104,29 @@ class Model:
             weights=weights
         )
 
+    def compute_mse_cost(self):
+        self.restored_prediction = tf.reshape(
+            tf.map_fn(
+                lambda level: self.mse_weights[level],
+                tf.reshape(self.prediction, [-1]),
+                dtype=tf.float64,
+            ),
+            [self.batch_size, -1]
+        )
+        self.restored_ys = tf.reshape(
+            tf.map_fn(
+                lambda level: self.mse_weights[level],
+                tf.reshape(self.ys, [-1]),
+                dtype=tf.float64,
+            ),
+            [self.batch_size, -1]
+        )
+        self.mse_error = tf.reduce_mean(tf.square(tf.subtract(
+            self.restored_ys,
+            self.restored_prediction
+        )))
+
     def add_train_step(self):
         # self.train_step = tf.train.MomentumOptimizer(self.learning_rate, 0.9).minimize(self.error)
         self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.error)
+        # self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.error)

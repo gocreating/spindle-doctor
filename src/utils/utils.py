@@ -2,6 +2,7 @@ import os
 import math
 import logging
 import argparse
+import numpy as np
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -34,6 +35,11 @@ def get_args():
     parser.add_argument(
         '--src-breakpoint',
         dest='src_breakpoint',
+        type=str
+    )
+    parser.add_argument(
+        '--dests',
+        nargs='+',
         type=str
     )
     parser.add_argument(
@@ -94,6 +100,10 @@ def get_args():
         '--abs',
         dest='abs',
         action='store_true'
+    )
+    parser.add_argument(
+        '--threshold',
+        type=float
     )
     parser.add_argument(
         '--thresholds',
@@ -157,6 +167,11 @@ def get_args():
         type=int
     )
     parser.add_argument(
+        '--smooth',
+        dest='smooth',
+        type=int
+    )
+    parser.add_argument(
         '--batch-step',
         dest='batch_step',
         type=int,
@@ -180,6 +195,27 @@ def get_args():
         '--labels',
         nargs='+',
         type=str
+    )
+    parser.add_argument(
+        '--colors',
+        nargs='+',
+        type=str
+    )
+    parser.add_argument(
+        '--line-styles',
+        dest='line_styles',
+        nargs='+',
+        type=str
+    )
+    parser.add_argument(
+        '--markers',
+        nargs='+',
+        type=str
+    )
+    parser.add_argument(
+        '--markersizes',
+        nargs='+',
+        type=float
     )
     parser.add_argument(
         '--ylim',
@@ -209,6 +245,12 @@ def get_args():
         type=int,
         default=128
     )
+    parser.add_argument(
+        '--seed',
+        dest='seed',
+        type=int,
+        default=0
+    )
 
     args = parser.parse_args()
     return args
@@ -224,3 +266,9 @@ def get_chunk_count(filename, chunk_size):
 def get_batch_count(arr, batch_size):
     length = arr.shape[0]
     return int(math.ceil(float(length) / batch_size)), length
+
+# https://stackoverflow.com/questions/20618804/how-to-smooth-a-curve-in-the-right-way
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth

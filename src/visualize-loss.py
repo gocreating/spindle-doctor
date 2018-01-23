@@ -27,7 +27,8 @@ python visualize-loss.py \
         "rnn-9 (half rnn-7 depth)" \
         "rnn-10 (10x rnn-7 learning rate)" \
     --names \
-        "epochs" "train_loss" "validate_loss" "elapsed_time"
+        "epochs" "train_loss" "validate_loss" "elapsed_time" \
+    --column "epochs" \
     --columns \
         "train_loss" \
         "train_loss" \
@@ -61,8 +62,10 @@ args = get_args()
 
 if __name__ == '__main__':
     count = len(args.srcs)
-    colors = cm.rainbow(np.linspace(0, 1, count))
-    for src, label, column, color in zip(args.srcs, args.labels, args.columns, colors):
+    colors = args.colors or cm.rainbow(np.linspace(0, 1, count))
+    # colors = cm.rainbow(np.linspace(0, 1, count))
+    for src, label, column, color, line_style, marker, markersize in zip(args.srcs, args.labels, args.columns, colors, args.line_styles, args.markers, args.markersizes):
+    # for src, label, column, color in zip(args.srcs, args.labels, args.columns, colors):
         df = pd.read_csv(
             src,
             names=args.names
@@ -70,21 +73,48 @@ if __name__ == '__main__':
         sample_size = min(len(df), args.sample_size) if args.sample_size else len(df)
         label = os.path.basename(src).split('.')[0] if label == '' else label
         plt.plot(
-            df['epochs'][0:sample_size],
-            # df['train_loss'][0:sample_size],
+            df[args.column][0:sample_size],
             df[column][0:sample_size],
             c=color,
-            label=label
+            label=label,
+            linestyle=line_style.replace('_', '-'),
+            linewidth=1,
+            marker=marker,
+            markevery=20,
+            markersize=markersize
         )
-    plt.xlabel(args.x_label)
-    plt.ylabel(args.y_label)
-    plt.title(args.title)
-    plt.legend()
+    plt.xlabel(args.x_label, fontsize=12)
+    plt.ylabel(args.y_label, fontsize=12)
+    plt.title(args.title + '\n', fontsize=14)
+    plt.tick_params(axis='both', which='major', labelsize=12)
+    plt.tick_params(axis='both', which='minor', labelsize=12)
+
+    # log y-axis
+    dy = 0.00001
+    t = np.arange(dy, 1.0, dy)
+    plt.ylim(args.ylim)
+    plt.semilogy(t, np.exp(-t/5.0))
+    plt.grid(True)
+    legend_outside = False
+    if legend_outside:
+        lgd = plt.legend(loc='center right', bbox_to_anchor=(1.5, 0.5), fontsize=10)
+    else:
+        lgd = plt.legend(fontsize=10)
 
     dest_dir = prepare_directory(os.path.dirname(args.dest))
-    plt.savefig(
-        args.dest,
-        dpi=400,
-        format='png'
-    )
+
+    if legend_outside:
+        plt.savefig(
+            args.dest,
+            dpi=1200,
+            format='eps',
+            bbox_extra_artists=(lgd,),
+            bbox_inches='tight'
+        )
+    else:
+        plt.savefig(
+            args.dest,
+            dpi=1200,
+            format='eps'
+        )
     plt.clf()

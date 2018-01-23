@@ -39,8 +39,8 @@ def main():
         )
 
         for chunk_idx, df_chunk in enumerate(df_chunks):
-            header = chunk_idx is 1
-            mode = 'a' if chunk_idx > 1 else 'w'
+            header = chunk_idx is 0
+            mode = 'a' if chunk_idx > 0 else 'w'
 
             df_chunk['datetime'] = pd.to_datetime(df_chunk['datetime'],  infer_datetime_format=True)
 

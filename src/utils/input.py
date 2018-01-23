@@ -1,6 +1,6 @@
 import pandas as pd
 
-def get_batch(df_chunks, chunk_size, batch_size):
+def get_batch(df_chunks, batch_size):
     df_buffer = pd.DataFrame()
     batch_idx = 0
 

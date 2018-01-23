@@ -53,7 +53,8 @@ class Model:
             num_units=output_size,
             forget_bias=1.0,
             state_is_tuple=True,
-            activation=tf.nn.sigmoid,
+            # activation=tf.nn.sigmoid,
+            activation=tf.nn.tanh,
             reuse=tf.get_variable_scope().reuse
         )
         return rnn.DropoutWrapper(cell, input_keep_prob=1 - self.dropout_rate)
@@ -126,7 +127,7 @@ class Model:
             [-1, self.step_size, self.output_size]
         )
         self.prediction = linear_combination_of_outputs
-        # self.prediction = tf.nn.sigmoid(linear_combination_of_outputs)
+        self.prediction = tf.nn.sigmoid(linear_combination_of_outputs)
         # self.prediction = tf.nn.tanh(linear_combination_of_outputs)
         # self.prediction = tf.nn.softplus(linear_combination_of_outputs)
 
@@ -148,11 +149,12 @@ class Model:
     #     self.error = tf.reduce_mean(losses)
 
     def compute_mse_cost(self):
-        self.error = tf.reduce_mean(tf.square(tf.subtract(
-            self.ys,
-            self.prediction
-        )))
+        self.error = tf.losses.mean_squared_error(
+            self.ys[:, 0, 0],
+            self.prediction[:, 0, 0]
+        )
 
     def add_train_step(self):
         # self.train_step = tf.train.MomentumOptimizer(self.learning_rate, 0.9).minimize(self.error)
-        self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.error)
+        # self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.error)
+        self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.error)
