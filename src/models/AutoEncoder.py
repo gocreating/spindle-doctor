@@ -2,15 +2,20 @@ import tensorflow as tf
 from tensorflow.contrib import rnn
 
 class Model:
-    def __init__(self, step_size, input_size, batch_size, dropout_rate):
+    def __init__(self, step_size, input_size, batch_size, dropout_rate, cluster_size, initial_centroids):
         self.step_size = step_size
         self.input_size = input_size
         self.batch_size = batch_size
         self.dropout_rate = dropout_rate
+        self.cluster_size = cluster_size
+        self.initial_centroids = initial_centroids
         self._rnn_layer_count = 0
 
         with tf.name_scope('input_layer'):
             self.add_input_layer()
+
+        with tf.name_scope('kmeans_layer'):
+            self.add_kmeans_layer()
 
         with tf.variable_scope('autoencoder_layer'):
             self.add_autoencoder_layer()
@@ -35,6 +40,32 @@ class Model:
             tf.float32,
             name='learning_rate'
         )
+
+    def add_kmeans_layer(self):
+        data_points = self.xs[:, 0]
+        self.centroids = tf.Variable(self.initial_centroids)
+        self.centroids.assign(self.initial_centroids)
+
+        duplicated_xs = tf.transpose(tf.reshape(tf.tile(data_points, [self.cluster_size]), [self.cluster_size, self.batch_size]))
+        distance_map = tf.abs(duplicated_xs - self.centroids)
+
+        # assignment phase
+        self.assignments = tf.argmin(distance_map, axis=1)
+
+        # update phase
+        self.masks = tf.cast(tf.one_hot(self.assignments, self.cluster_size), tf.bool)
+        self.updated_centroids = tf.map_fn(
+            # if mask contains only False, nan will be returned
+            (lambda mask: tf.reduce_mean(tf.boolean_mask(data_points, mask))),
+            tf.transpose(self.masks),
+            dtype=tf.float64,
+            parallel_iterations=self.cluster_size
+        )
+        delta_centroids = self.updated_centroids - self.centroids
+        # replace nan with 0
+        # ref: https://stackoverflow.com/questions/42043488/replace-nan-values-in-tensorflow-tensor
+        delta_centroids_without_nan = tf.where(tf.is_nan(delta_centroids), tf.zeros_like(delta_centroids), delta_centroids)
+        self.centroids += delta_centroids_without_nan
 
     def lstm_cell(self, num_units):
         cell = rnn.BasicLSTMCell(
