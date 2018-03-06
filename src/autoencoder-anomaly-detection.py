@@ -15,6 +15,7 @@ python autoencoder-anomaly-detection.py \
     --dropout-rate 0.1 \
     --learning-rates \
         1 1000 0.001 \
+    --src-breakpoint "../build/meta/phm2012/anomaly-detection-unequal/breakpoint-256.csv" \
     --sample-size 128 # must >= batch_size and will be cut to match batch_size \
     --dest ../build/models/phm2012/phm-avg-autoencoder/model
 """
@@ -85,6 +86,16 @@ def eval_mse(model, sess, dataset_name):
         })
     return mse / batch_count
 
+def get_initial_centroids():
+    df_breakpoints = pd.read_csv(args.src_breakpoint)
+    breakpoints = df_breakpoints[args.columns[0].replace('level_', '')].values
+    centroids = np.concatenate((
+        [breakpoints[0]],
+        np.array([(breakpoints[i] + breakpoints[i + 1]) / 2 for i in range(0, len(breakpoints) - 1)]),
+        [breakpoints[-1]]
+    ))
+    return centroids
+
 def visualize_dataset(model, sess, epoch, dataset_name):
     dest_dir = prepare_directory(os.path.join(
         '../build/plots',
@@ -128,11 +139,14 @@ def visualize_dataset(model, sess, epoch, dataset_name):
 
 if __name__ == '__main__':
     read_dataset()
+    initial_centroids = get_initial_centroids()
     model = Model(
         args.step_size,
         args.input_size,
         args.batch_size,
-        args.dropout_rate
+        args.dropout_rate,
+        256,
+        initial_centroids
     )
 
     # start session
@@ -181,7 +195,12 @@ if __name__ == '__main__':
                 for batch_idx in range(0, batch_count):
                     begin_idx = batch_idx * args.batch_size
                     end_idx = min(begin_idx + args.batch_size, data_size)
-
+                    # assignments, centroids, expanded_assignments = sess.run([model.assignments, model.centroids, model.expanded_assignments], feed_dict={
+                    #     model.xs: dataset['train'][begin_idx: end_idx],
+                    # })
+                    # print(expanded_assignments)
+                    # print('\n\n')
+                    # print(batch_idx)
                     model.train_step.run(
                         feed_dict={
                             model.xs: dataset['train'][begin_idx: end_idx],
@@ -189,7 +208,7 @@ if __name__ == '__main__':
                         }
                     )
 
-                    if (batch_idx + 1) % 1000 == 0:
+                    if (batch_idx + 1) % 100 == 0:
                         elapsed_time = time.time() - start_time
                         print('Epoch\t%d, Batch\t%d, Elapsed time\t%.1fs' % (
                             epoch, batch_idx + 1, elapsed_time

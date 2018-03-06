@@ -16,6 +16,7 @@ class Model:
 
         with tf.name_scope('kmeans_layer'):
             self.add_kmeans_layer()
+            self.expand_assignments()
 
         with tf.variable_scope('autoencoder_layer'):
             self.add_autoencoder_layer()
@@ -61,11 +62,15 @@ class Model:
             dtype=tf.float64,
             parallel_iterations=self.cluster_size
         )
-        delta_centroids = self.updated_centroids - self.centroids
-        # replace nan with 0
         # ref: https://stackoverflow.com/questions/42043488/replace-nan-values-in-tensorflow-tensor
-        delta_centroids_without_nan = tf.where(tf.is_nan(delta_centroids), tf.zeros_like(delta_centroids), delta_centroids)
-        self.centroids += delta_centroids_without_nan
+        self.centroids = tf.where(tf.is_nan(self.updated_centroids), self.centroids, self.updated_centroids)
+
+    def expand_assignments(self):
+        # map raw value into classes
+        self.expanded_assignments = tf.cast(tf.transpose(tf.stack([
+            tf.argmin(tf.abs(tf.transpose(tf.reshape(tf.tile(self.xs[:, i], [self.cluster_size]), [self.cluster_size, self.batch_size])) - self.centroids), axis=1)
+            for i in range(self.step_size)
+        ])), tf.float64)
 
     def lstm_cell(self, num_units):
         cell = rnn.BasicLSTMCell(
@@ -127,39 +132,48 @@ class Model:
         # self.dec_1 = self.stack_rnn_layer(self.enc_2, 16, 32,                 4, 8, 'dec_1')
         # self.dec_2 = self.stack_rnn_layer(self.dec_1, 32,  1,                 8, self.step_size, 'dec_2')
 
-        self.enc_1 = self.stack_rnn_layer(self.xs,     1, 32, self.step_size,  16, 'enc_1')
+        self.enc_1 = self.stack_rnn_layer(self.expanded_assignments,     1, 32, self.step_size,  16, 'enc_1')
         self.enc_2 = self.stack_rnn_layer(self.enc_1, 32, 16,              16,  8, 'enc_2')
         self.enc_3 = self.stack_rnn_layer(self.enc_2, 16,  8,               8,  4, 'enc_3')
         self.dec_1 = self.stack_rnn_layer(self.enc_3,  8, 16,               4,  8, 'dec_1')
         self.dec_2 = self.stack_rnn_layer(self.dec_1, 16, 32,               8,  16, 'dec_2')
-        self.dec_3 = self.stack_rnn_layer(self.dec_2, 32,  1,              16,  self.step_size, 'dec_3')
+        self.dec_3 = self.stack_rnn_layer(self.dec_2, 32,  self.cluster_size,              16,  self.step_size, 'dec_3')
 
     def add_output_layer(self):
         # self.prediction = self.dec_2
-        self.prediction = tf.reshape(
+        # self.prediction = tf.reshape(
+        #     self.dec_3,
+        #     [-1, self.step_size]
+        # )
+        self.prediction_logits = tf.reshape(
             self.dec_3,
-            [-1, self.step_size]
+            [-1, self.step_size, self.cluster_size]
         )
+        self.prediction = tf.argmax(self.prediction_logits, axis=2)
 
-    def compute_entropy_cost(self):
-        def ms_error(labels, logits):
-            return tf.square(tf.subtract(labels, logits))
-
-        current_batch_size = tf.shape(self.prediction)[0]
-        losses = tf.contrib.legacy_seq2seq.sequence_loss_by_example(
-            [self.prediction],
-            [self.xs],
-            [tf.ones([current_batch_size], dtype=tf.float64)],
-            average_across_timesteps=True,
-            softmax_loss_function=ms_error
-        )
-        self.mse_error = tf.reduce_mean(losses)
+    # def compute_entropy_cost(self):
+    #     def ms_error(labels, logits):
+    #         return tf.square(tf.subtract(labels, logits))
+    #
+    #     current_batch_size = tf.shape(self.prediction)[0]
+    #     losses = tf.contrib.legacy_seq2seq.sequence_loss_by_example(
+    #         [self.prediction],
+    #         [self.xs],
+    #         [tf.ones([current_batch_size], dtype=tf.float64)],
+    #         average_across_timesteps=True,
+    #         softmax_loss_function=ms_error
+    #     )
+    #     self.mse_error = tf.reduce_mean(losses)
 
     def compute_mse_cost(self):
-        self.mse_error = tf.reduce_mean(tf.square(tf.subtract(
-            self.xs,
-            self.prediction
-        )))
+        # self.mse_error = tf.reduce_mean(tf.square(tf.subtract(
+        #     self.xs,
+        #     self.prediction
+        # )))
+        self.mse_error = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(
+            labels=tf.one_hot(tf.cast(self.expanded_assignments, tf.int32), self.cluster_size),
+            logits=self.prediction_logits
+        ))
 
     def add_train_step(self):
         # self.train_step = tf.train.MomentumOptimizer(self.learning_rate, 0.9).minimize(self.error)
