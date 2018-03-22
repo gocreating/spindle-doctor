@@ -30,3 +30,11 @@ def unison_shuffled_copies(a, b):
 
 def get_windowed_data(raw, window_size):
     return np.array([raw[k - window_size: k] for k in range(window_size, raw.shape[0] + 1)])
+
+def breakpoints_to_centroids(breakpoints):
+    centroids = np.concatenate((
+        [breakpoints[0]],
+        np.array([(breakpoints[i] + breakpoints[i + 1]) / 2 for i in range(0, len(breakpoints) - 1)]),
+        [breakpoints[-1]]
+    ))
+    return centroids

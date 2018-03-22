@@ -20,7 +20,7 @@ python classification-anomaly-detection.py \
         101 200 0.01 \
         201 1000 0.001 \
     --sample-size 128 # must >= batch_size and will be cut to match batch_size \
-    --src-breakpoint "../build/meta/phm2012/anomaly-detection-unequal/breakpoint-128.csv"
+    --src-breakpoint "../build/meta/phm2012/anomaly-detection-unequal/breakpoint-128.csv" \
     --src ../build/models/phm2012/phm-fft1-classification/model \
     --dest ../build/models/phm2012/phm-fft1-classification/model
 """
@@ -81,14 +81,19 @@ def read_dataset():
             dataset[name] = dataset[name][0:-r]
 
 def get_mse_weights():
-    df_breakpoints = pd.read_csv(args.src_breakpoint)
-    breakpoints = df_breakpoints[args.columns[0].replace('level_', '')].values
-    mse_weights = np.concatenate((
-        [breakpoints[0]],
-        np.array([(breakpoints[i] + breakpoints[i + 1]) / 2 for i in range(0, len(breakpoints) - 1)]),
-        [breakpoints[-1]]
-    ))
-    return mse_weights
+    if args.src_breakpoint:
+        df_breakpoints = pd.read_csv(args.src_breakpoint)
+        breakpoints = df_breakpoints[args.columns[0].replace('level_', '')].values
+        mse_weights = np.concatenate((
+            [breakpoints[0]],
+            np.array([(breakpoints[i] + breakpoints[i + 1]) / 2 for i in range(0, len(breakpoints) - 1)]),
+            [breakpoints[-1]]
+        ))
+        return mse_weights
+    elif args.src_centroid:
+        df_centroids = pd.read_csv(args.src_centroid)
+        centroids = df_centroids[args.columns[0].replace('klevel_', '')].values
+        return centroids
 
 def eval_mse(model, sess, dataset_name):
     mse = 0.0

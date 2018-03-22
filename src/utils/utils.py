@@ -38,6 +38,11 @@ def get_args():
         type=str
     )
     parser.add_argument(
+        '--src-centroid',
+        dest='src_centroid',
+        type=str
+    )
+    parser.add_argument(
         '--dests',
         nargs='+',
         type=str
