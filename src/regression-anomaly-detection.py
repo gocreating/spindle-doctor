@@ -132,52 +132,7 @@ def visualize_dataset(model, sess, epoch, dataset_name):
 
 if __name__ == '__main__':
     read_dataset()
-    # step = 4, hidden size = 128, lr = 0.00001
-    # tf.set_random_seed(123456) # 0.244
-    # tf.set_random_seed(9487) # 0.452
-    # tf.set_random_seed(999) # 0.538
-    # tf.set_random_seed(9999) # 0.129
-
-    # step = 16, hidden size = 128
-    # tf.set_random_seed(123456) # 0.45
-    # tf.set_random_seed(9487) # 0.494
-    # tf.set_random_seed(94879487) # 0.365
-    # tf.set_random_seed(948794879487) # 0.436
-    # tf.set_random_seed(99) # 0.466
-    # tf.set_random_seed(999) # 0.455
-    # tf.set_random_seed(9999) # 0.517
-    # tf.set_random_seed(99999) # 0.603
-    # tf.set_random_seed(999999) # 0.427
-    # tf.set_random_seed(9999999) # 0.38
-    # tf.set_random_seed(99999999) # 0.391
-    # tf.set_random_seed(0) # 0.318
-    # tf.set_random_seed(1) # 0.381
-    # tf.set_random_seed(2) # 0.351
-    # tf.set_random_seed(3) # 0.303
-    # tf.set_random_seed(4) # 0.439
-    # tf.set_random_seed(5) # 0.595
-    # tf.set_random_seed(6) # 0.479
-    # tf.set_random_seed(7) # 0.481
-    # tf.set_random_seed(8) # 0.668
-    # tf.set_random_seed(9) # 0.468
-    # tf.set_random_seed(10) # 0.512
-    # tf.set_random_seed(11) # 0.502
-    # tf.set_random_seed(515415) # 0.507
-    # tf.set_random_seed(987456) # 0.208
-    # tf.set_random_seed(42158989) # 0.495
-    # tf.set_random_seed(987457) # 0.275
-    # tf.set_random_seed(987455) # 0.611
-    # tf.set_random_seed(532184697) # 0.38
-    # tf.set_random_seed(786456) # 0.325
-    # tf.set_random_seed(78644545654345) # 0.326
-    # tf.set_random_seed(48564561) # 0.372
-    # tf.set_random_seed(86789724455) # 0.329
-    # tf.set_random_seed(952874321) # 0.294
-
-    # step = 32, hidden size = 64
-    # tf.set_random_seed(123456) # 0.00356
-    tf.set_random_seed(args.seed) # 0.00225
-    # tf.set_random_seed(999) # 0.00323
+    tf.set_random_seed(args.seed)
 
     with tf.variable_scope('anomaly-detection', reuse=None):
         model = Model(

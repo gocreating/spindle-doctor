@@ -154,6 +154,7 @@ def visualize_dataset(model, sess, epoch, dataset_name):
 
 if __name__ == '__main__':
     read_dataset()
+    tf.set_random_seed(args.seed)
     mse_weights = get_mse_weights()
     model = Model(
         args.step_size,
