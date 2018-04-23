@@ -241,8 +241,7 @@ def get_args():
     )
     parser.add_argument(
         '--scope',
-        type=str,
-        choices=['phm2012', 'tongtai']
+        type=str
     )
     parser.add_argument(
         '--batch-size',
