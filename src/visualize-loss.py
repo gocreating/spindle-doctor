@@ -73,7 +73,7 @@ if __name__ == '__main__':
         sample_size = min(len(df), args.sample_size) if args.sample_size else len(df)
         label = os.path.basename(src).split('.')[0] if label == '' else label
         plt.plot(
-            df[args.column][0:sample_size],
+            df[args.column][0:sample_size] / 3600,
             df[column][0:sample_size],
             c=color,
             label=label,

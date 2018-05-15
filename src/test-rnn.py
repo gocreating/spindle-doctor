@@ -12,7 +12,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from utils.utils import log, get_args, prepare_directory
+from utils.utils import log, get_args, prepare_directory, smooth
 from models.RNN_LSTM import Model
 
 mpl.rcParams['agg.path.chunksize'] = 10000
@@ -80,11 +80,11 @@ def visualize(model, sess):
         args.name,
         os.path.basename(args.test_src).rsplit('.', 1)[0]
     ))
-
+    plt.figure(figsize=(6, 4))
     plt.ylim(args.ylim)
-    plt.ylabel('Health Index')
-    plt.xlabel('Index')
-    title = 'Test Health Index'
+    plt.ylabel('Health Indicator (%)')
+    plt.xlabel('Data Entry')
+    title = 'HI Prediction Result'
 
     x_axis = np.linspace(
         0,
@@ -102,18 +102,19 @@ def visualize(model, sess):
         }
     )
     predicted = np.reshape(ps, (args.sample_size))
-
-    plt.plot(x_axis, ground_truth, 'g.')
-    plt.plot(x_axis, predicted, color='purple', linestyle='--', linewidth=1)
-
+    if args.smooth:
+        predicted = smooth(predicted, args.smooth)
+    plt.plot(x_axis, ground_truth * 100, color='green', linewidth=2, label='real HI')
+    plt.plot(x_axis, predicted * 100, color='blue', linestyle='--', linewidth=2, label='predicted HI')
+    plt.legend()
     plt.title(title)
     plt.savefig(
         os.path.join(
             dest_dir,
-            'test-health-index-batch_step-{0}.png'.format(args.batch_step)
+            'test-health-index-batch_step-{0}.eps'.format(args.batch_step)
         ),
-        dpi=400,
-        format='png'
+        dpi=800,
+        format='eps'
     )
     plt.clf()
 

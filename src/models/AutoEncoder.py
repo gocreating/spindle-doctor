@@ -21,12 +21,12 @@ class Model:
         with tf.variable_scope('autoencoder_layer'):
             self.add_autoencoder_layer()
 
-        with tf.variable_scope('output_layer'):
-            self.add_output_layer()
+        with tf.variable_scope('evaluation_layer'):
+            self.add_evaluation_layer()
 
         with tf.name_scope('compute_cost'):
-            self.compute_mse_cost()
-            # self.compute_entropy_cost()
+            # self.compute_mse_cost()
+            self.compute_entropy_cost()
 
         with tf.name_scope('train_step'):
             self.add_train_step()
@@ -139,42 +139,38 @@ class Model:
         self.dec_2 = self.stack_rnn_layer(self.dec_1, 16, 32,               8,  16, 'dec_2')
         self.dec_3 = self.stack_rnn_layer(self.dec_2, 32,  self.cluster_size,              16,  self.step_size, 'dec_3')
 
-    def add_output_layer(self):
-        # self.prediction = self.dec_2
-        # self.prediction = tf.reshape(
-        #     self.dec_3,
-        #     [-1, self.step_size]
-        # )
+    def add_evaluation_layer(self):
         self.prediction_logits = tf.reshape(
             self.dec_3,
             [-1, self.step_size, self.cluster_size]
         )
         self.prediction = tf.argmax(self.prediction_logits, axis=2)
 
-    # def compute_entropy_cost(self):
-    #     def ms_error(labels, logits):
-    #         return tf.square(tf.subtract(labels, logits))
-    #
-    #     current_batch_size = tf.shape(self.prediction)[0]
-    #     losses = tf.contrib.legacy_seq2seq.sequence_loss_by_example(
-    #         [self.prediction],
-    #         [self.xs],
-    #         [tf.ones([current_batch_size], dtype=tf.float64)],
-    #         average_across_timesteps=True,
-    #         softmax_loss_function=ms_error
-    #     )
-    #     self.mse_error = tf.reduce_mean(losses)
+    # def compute_mse_cost(self):
+    #     self.mse_error = tf.reduce_mean(tf.square(tf.subtract(
+    #         self.xs,
+    #         self.prediction
+    #     )))
 
-    def compute_mse_cost(self):
-        # self.mse_error = tf.reduce_mean(tf.square(tf.subtract(
-        #     self.xs,
-        #     self.prediction
-        # )))
-        self.mse_error = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(
-            labels=tf.one_hot(tf.cast(self.expanded_assignments, tf.int32), self.cluster_size),
-            logits=self.prediction_logits
-        ))
+    def compute_entropy_cost(self):
+        # self.entropy = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(
+        #     labels=tf.one_hot(tf.cast(self.expanded_assignments, tf.int32), self.cluster_size),
+        #     logits=self.prediction_logits
+        # ))
+
+        logits = tf.unstack(self.prediction_logits, axis=1)
+        targets = tf.unstack(self.prediction, axis=1)
+        weights = [
+            tf.ones([self.batch_size], tf.float64)
+            for _ in range(self.step_size)
+        ]
+        self.entropy = tf.contrib.legacy_seq2seq.sequence_loss(
+            logits,
+            targets=targets,
+            weights=weights
+        )
 
     def add_train_step(self):
-        # self.train_step = tf.train.MomentumOptimizer(self.learning_rate, 0.9).minimize(self.error)
-        self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.mse_error)
+        # self.train_step = tf.train.MomentumOptimizer(self.learning_rate, 0.9).minimize(self.entropy)
+        self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.entropy)
+        # self.train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.entropy)

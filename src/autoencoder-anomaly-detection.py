@@ -47,8 +47,6 @@ dataset = {
     'anomalous': np.empty((0, args.step_size)),
 }
 
-# Y_LIMIT = [0, args.symbol_size + 1]
-
 def read_dataset():
     global dataset
 
@@ -75,16 +73,16 @@ def read_dataset():
         if r != 0:
             dataset[name] = dataset[name][0:-r]
 
-def eval_mse(model, sess, dataset_name):
-    mse = 0.0
+def eval_entropy(model, sess, dataset_name):
+    entropy = 0.0
     batch_count, data_size = get_batch_count(dataset[dataset_name], args.batch_size)
     for batch_idx in range(0, batch_count):
         begin_idx = batch_idx * args.batch_size
         end_idx = min(begin_idx + args.batch_size, data_size)
-        mse = mse + model.mse_error.eval(session=sess, feed_dict={
+        entropy = entropy + model.entropy.eval(session=sess, feed_dict={
             model.xs: dataset[dataset_name][begin_idx: end_idx],
         })
-    return mse / batch_count
+    return entropy / batch_count
 
 def get_initial_centroids():
     df_breakpoints = pd.read_csv(args.src_breakpoint)
@@ -112,22 +110,29 @@ def visualize_dataset(model, sess, epoch, dataset_name):
             dtype=int
         )
         ground_truth = dataset[dataset_name][x_axis, 0]
-        ps = model.prediction.eval(
-            session=sess,
-            feed_dict={
-                model.xs: dataset[dataset_name][x_axis],
-            }
-        )
+        expanded_assignments, ps = sess.run([model.expanded_assignments, model.prediction], feed_dict={
+            model.xs: dataset[dataset_name][x_axis],
+        })
+        # ps = model.prediction.eval(
+        #     session=sess,
+        #     feed_dict={
+        #         model.xs: dataset[dataset_name][x_axis],
+        #     }
+        # )
+        origin = np.array(expanded_assignments)[:, 0]
         predicted = np.array(ps)[:, 0]
 
-    plt.scatter(x_axis, ground_truth, color='green', marker='x', s=12)
+    # plt.scatter(x_axis, ground_truth, color='green', marker='x', s=12)
+    plt.scatter(x_axis, origin, color='green', marker='x', s=12)
     plt.scatter(x_axis, predicted, color='blue', s=10, linewidth=0)
-    plt.plot(x_axis, abs(predicted - ground_truth), color='red', linestyle='--', linewidth=1)
+    # plt.plot(x_axis, abs(predicted - ground_truth), color='red', linestyle='--', linewidth=1)
+    plt.plot(x_axis, abs(predicted - origin), color='red', linestyle='--', linewidth=1)
 
-    mse = eval_mse(model, sess, dataset_name)
+    entropy = eval_entropy(model, sess, dataset_name)
 
-    title = 'epoch-{0}\n{1} mse = {2}'.format(epoch, dataset_name, mse)
+    title = 'epoch-{0}\n{1} entropy = {2}'.format(epoch, dataset_name, entropy)
     plt.title(title)
+    plt.ylim([0, 256])
     plt.savefig(
         os.path.join(dest_dir, 'epoch-{0}-{1}.png'.format(epoch, dataset_name)),
         dpi=400,
@@ -135,7 +140,7 @@ def visualize_dataset(model, sess, epoch, dataset_name):
     )
     plt.clf()
 
-    return mse
+    return entropy
 
 if __name__ == '__main__':
     read_dataset()
@@ -177,10 +182,10 @@ if __name__ == '__main__':
         start_time = time.time()
 
         # before training
-        validate_mse = visualize_dataset(model, sess, 0, 'validate')
-        anomalous_mse = visualize_dataset(model, sess, 0, 'anomalous')
+        validate_entropy = visualize_dataset(model, sess, 0, 'validate')
+        anomalous_entropy = visualize_dataset(model, sess, 0, 'anomalous')
         print('Epoch\t%d, Batch\t%d, Elapsed time\t%.1fs, Validate MSE\t%s, Anomalous MSE\t%s, Min Validate MSE\t%s' % (
-            0, 0, 0, validate_mse, anomalous_mse, min_validate_mse
+            0, 0, 0, validate_entropy, anomalous_entropy, min_validate_mse
         ))
 
         learning_rates_schedules = np.reshape(
@@ -215,16 +220,16 @@ if __name__ == '__main__':
                         ))
 
                 elapsed_time = time.time() - start_time
-                validate_mse = visualize_dataset(model, sess, epoch, 'validate')
-                anomalous_mse = visualize_dataset(model, sess, epoch, 'anomalous')
-                if validate_mse < min_validate_mse:
-                    min_validate_mse = validate_mse
+                validate_entropy = visualize_dataset(model, sess, epoch, 'validate')
+                anomalous_entropy = visualize_dataset(model, sess, epoch, 'anomalous')
+                if validate_entropy < min_validate_mse:
+                    min_validate_mse = validate_entropy
                     if args.dest:
                         exportSaver.save(sess, args.dest)
                 print('Epoch\t%d, Batch\t%d, Elapsed time\t%.1fs, Validate MSE\t%s, Anomalous MSE\t%s, Min Validate MSE\t%s' % (
-                    epoch, batch_count, elapsed_time, validate_mse, anomalous_mse, min_validate_mse
+                    epoch, batch_count, elapsed_time, validate_entropy, anomalous_entropy, min_validate_mse
                 ))
                 fd_log.write('{0},{1},{2},{3}\n'.format(
-                    epoch, validate_mse, anomalous_mse, elapsed_time
+                    epoch, validate_entropy, anomalous_entropy, elapsed_time
                 ))
                 fd_log.flush()

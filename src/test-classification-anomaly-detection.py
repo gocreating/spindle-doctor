@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Usage:
 python test-classification-anomaly-detection.py \
@@ -76,14 +77,19 @@ def read_dataset():
     df = df[0: len(dataset['ordered'])]
 
 def get_mse_weights():
-    df_breakpoints = pd.read_csv(args.src_breakpoint)
-    breakpoints = df_breakpoints[args.column.replace('level_', '')].values
-    mse_weights = np.concatenate((
-        [breakpoints[0]],
-        np.array([(breakpoints[i] + breakpoints[i + 1]) / 2 for i in range(0, len(breakpoints) - 1)]),
-        [breakpoints[-1]]
-    ))
-    return mse_weights
+    if args.src_breakpoint:
+        df_breakpoints = pd.read_csv(args.src_breakpoint)
+        breakpoints = df_breakpoints[args.columns[0].replace('level_', '')].values
+        mse_weights = np.concatenate((
+            [breakpoints[0]],
+            np.array([(breakpoints[i] + breakpoints[i + 1]) / 2 for i in range(0, len(breakpoints) - 1)]),
+            [breakpoints[-1]]
+        ))
+        return mse_weights
+    elif args.src_centroid:
+        df_centroids = pd.read_csv(args.src_centroid)
+        centroids = df_centroids[args.columns[0].replace('klevel_', '')].values
+        return centroids
 
 # https://stackoverflow.com/questions/37787632/different-color-for-line-depending-on-corresponding-values-in-pyplot
 def visualize(mses):
@@ -94,12 +100,12 @@ def visualize(mses):
         os.path.basename(args.test_src).rsplit('.', 1)[0]
     ))
 
-    f, axarr = plt.subplots(2, sharex=True)
+    f, axarr = plt.subplots(2, sharex=True, figsize=(7, 5))
 
     axarr[0].set_title(args.title)
-    axarr[0].set_ylabel('Vibration Signal')
+    axarr[0].set_ylabel('Vibration Signal (g)')
     axarr[1].set_ylabel('Reconstruct Error (MSE)')
-    plt.xlabel('Bearing Life')
+    plt.xlabel('Bearing Life (390ms)')
 
     threshold = args.threshold
     anomaly_flags = mses >= threshold
@@ -121,7 +127,7 @@ def visualize(mses):
     plt.savefig(
         os.path.join(dest_dir, '{0}(seed={1}, smooth={2}).eps'.format(args.name, args.seed, args.smooth)),
         dpi=800,
-        format='png'
+        format='eps'
     )
     plt.clf()
 
@@ -141,62 +147,94 @@ def eval_ROC(mses):
     print('TP =\t{0}\nFP =\t{1}\nTN =\t{2}\nFN =\t{3}\nTPR =\t{4}\nFPR =\t{5}'.format(TP, FP, TN, FN, TPR, FPR))
 
 if __name__ == '__main__':
+    start_time = time.time()
     read_dataset()
+    print('Load Data \t%.5fs' % (time.time() - start_time,))
 
+    start_time = time.time()
     tf.reset_default_graph()
     with tf.Graph().as_default():
 
         tf.set_random_seed(args.seed)
         mse_weights = get_mse_weights()
-        model = Model(
-            args.step_size,
-            args.hidden_size,
-            args.embedding_size,
-            args.symbol_size,
-            args.layer_depth,
-            args.batch_size,
-            args.dropout_rate,
-            mse_weights
-        )
+        # model = Model(
+        #     args.step_size,
+        #     args.hidden_size,
+        #     args.embedding_size,
+        #     args.symbol_size,
+        #     args.layer_depth,
+        #     args.batch_size,
+        #     args.dropout_rate,
+        #     mse_weights
+        # )
+        # print('============')
+        # print(model.xs)
+        # print(model.ys)
+        # print(model.feed_previous)
+        # print(model.restored_prediction)
+        # print(model.restored_ys)
+        # print('============')
+        # sys.exit()
 
         # start session
         sess = tf.InteractiveSession(
             # config=tf.ConfigProto(intra_op_parallelism_threads=N_THREADS)
+            # config=tf.ConfigProto(intra_op_parallelism_threads=16)
         )
 
         # prepare model import or export
-        importSaver = tf.train.Saver()
+        # importSaver = tf.train.Saver()
+        # importSaver.restore(sess, args.src)
+        importSaver = tf.train.import_meta_graph(os.path.join(args.src, '../model.meta'))
         importSaver.restore(sess, args.src)
+        # graph = tf.get_default_graph()
+        # restored_prediction = graph.get_operation_by_name('restored_prediction').outputs[0]
+        print('Load Model \t%.5fs' % (time.time() - start_time,))
 
-        for context in ['sampled', 'ordered']:
+        # for context in ['sampled', 'ordered']:
+        for context in ['sampled']:
             batch_count, data_size = get_batch_count(dataset[context], args.batch_size)
             mses = np.array([])
             for batch_idx in range(0, batch_count, args.batch_step):
+                start_time = time.time()
+
                 if context == 'ordered' and batch_idx % 50 == 0:
                     print('{0} / {1} batches'.format(batch_idx, batch_count))
                 begin_idx = batch_idx * args.batch_size
                 end_idx = min(begin_idx + args.batch_size, data_size)
                 ground_truth = dataset[context][begin_idx: end_idx]
-                restored_predictions = model.restored_prediction.eval(
-                    session=sess,
-                    feed_dict={
-                        model.xs: ground_truth,
-                        model.ys: ground_truth,
-                        model.feed_previous: True,
-                    }
-                )
-                restored_ys = model.restored_ys.eval(
-                    session=sess,
-                    feed_dict={
-                        model.xs: ground_truth,
-                        model.ys: ground_truth,
-                        model.feed_previous: True,
-                    }
-                )
+                # restored_predictions = model.restored_prediction.eval(
+                #     session=sess,
+                #     feed_dict={
+                #         model.xs: ground_truth,
+                #         model.ys: ground_truth,
+                #         model.feed_previous: True,
+                #     }
+                # )
+                restored_predictions = sess.run('compute_cost/Reshape_1:0', feed_dict={
+                    'input_layer/xs:0': ground_truth,
+                    'input_layer/ys:0': ground_truth,
+                    'input_layer/feed_previous:0': True,
+                })
+                # restored_ys = model.restored_ys.eval(
+                #     session=sess,
+                #     feed_dict={
+                #         model.xs: ground_truth,
+                #         model.ys: ground_truth,
+                #         model.feed_previous: True,
+                #     }
+                # )
+                restored_ys = sess.run('compute_cost/Reshape_3:0', feed_dict={
+                    'input_layer/xs:0': ground_truth,
+                    'input_layer/ys:0': ground_truth,
+                    'input_layer/feed_previous:0': True,
+                })
                 # mse的計算方式會嚴重影響測試結果
                 mse = np.mean((restored_ys - restored_predictions) ** 2, axis=1)
                 # mse = np.reshape((restored_ys - restored_predictions) ** 2, (-1, args.step_size))[:, 0]
                 mses = np.concatenate((mses, mse), axis=0)
+
+                print('Inference #%d\t%.5fs' % (batch_idx + 1, time.time() - start_time,))
             # smoothing
             if args.smooth:
                 mses = smooth(mses, args.smooth)
