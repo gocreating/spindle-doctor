@@ -228,6 +228,23 @@ def get_args():
         type=float,
         default=[0, 1]
     )
+    parser.add_argument(
+        '--log-y-axis',
+        dest='log_y_axis',
+        action='store_true',
+        default=False
+    )
+    parser.add_argument(
+        '--grid',
+        dest='grid',
+        action='store_true',
+        default=False
+    )
+    parser.add_argument(
+        '--legend-outside',
+        dest='legend_outside',
+        type=float
+    )
 
     # other parameters
     parser.add_argument(

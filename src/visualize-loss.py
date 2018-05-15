@@ -90,20 +90,22 @@ if __name__ == '__main__':
     plt.tick_params(axis='both', which='minor', labelsize=12)
 
     # log y-axis
-    dy = 0.00001
-    t = np.arange(dy, 1.0, dy)
-    plt.ylim(args.ylim)
-    plt.semilogy(t, np.exp(-t/5.0))
-    plt.grid(True)
-    legend_outside = False
-    if legend_outside:
-        lgd = plt.legend(loc='center right', bbox_to_anchor=(1.5, 0.5), fontsize=10)
+    if args.log_y_axis:
+        dy = 0.00001
+        t = np.arange(dy, 1.0, dy)
+        plt.ylim(args.ylim)
+        plt.semilogy(t, np.exp(-t/5.0))
+    if args.grid:
+        plt.grid(True)
+    # legend_outside = False
+    if args.legend_outside:
+        lgd = plt.legend(loc='center right', bbox_to_anchor=(args.legend_outside, 0.5), fontsize=10)
     else:
         lgd = plt.legend(fontsize=10)
 
     dest_dir = prepare_directory(os.path.dirname(args.dest))
 
-    if legend_outside:
+    if args.legend_outside:
         plt.savefig(
             args.dest,
             dpi=1200,
