@@ -61,6 +61,11 @@ def get_args():
         type=str,
         help='Filename of logs'
     )
+    parser.add_argument(
+        '--report-roc',
+        dest='report_roc',
+        action='store_true'
+    )
 
     # IO performance
     parser.add_argument(

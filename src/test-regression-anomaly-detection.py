@@ -127,6 +127,16 @@ def eval_ROC(mses):
     TP, FP, TN, FN = len(df_TP), len(df_FP), len(df_TN), len(df_FN)
     TPR = TP / (TP + FN)
     FPR = FP / (FP + TN)
+
+    roc_dest = os.path.join(
+        '../build/plots',
+        args.scope,
+        args.name,
+        os.path.basename(args.test_src).rsplit('.', 1)[0],
+        'roc-report-{0}(seed={1}, smooth={2}).csv'.format(args.name, args.seed, args.smooth)
+    )
+    df_roc = pd.DataFrame({ 'TP': [TP], 'FP': [FP], 'TN': [TN], 'FN': [FN], 'TPR': [TPR], 'FPR': [FPR] })
+    df_roc.to_csv(roc_dest)
     print('TP =\t{0}\nFP =\t{1}\nTN =\t{2}\nFN =\t{3}\nTPR =\t{4}\nFPR =\t{5}'.format(TP, FP, TN, FN, TPR, FPR))
 
 if __name__ == '__main__':
@@ -178,5 +188,5 @@ if __name__ == '__main__':
                 mses = smooth(mses, args.smooth)
             if context == 'sampled':
                 visualize(mses)
-            if context == 'ordered':
+            if context == 'ordered' and args.report_roc:
                 eval_ROC(mses)
