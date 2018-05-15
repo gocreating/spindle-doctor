@@ -164,6 +164,7 @@ if __name__ == '__main__':
         args.layer_depth,
         args.batch_size,
         args.dropout_rate,
+        args.rnn_unit,
         mse_weights
     )
 

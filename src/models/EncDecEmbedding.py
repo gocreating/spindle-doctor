@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.contrib import rnn, legacy_seq2seq
 
 class Model:
-    def __init__(self, step_size, hidden_size, embedding_size, symbol_size, layer_depth, batch_size, dropout_rate, mse_weights):
+    def __init__(self, step_size, hidden_size, embedding_size, symbol_size, layer_depth, batch_size, dropout_rate, rnn_unit, mse_weights):
         self.step_size = step_size
         self.hidden_size = hidden_size
         self.embedding_size = embedding_size
@@ -12,6 +12,7 @@ class Model:
         self.batch_size = batch_size
         self.dropout_rate = dropout_rate
         self.mse_weights = mse_weights
+        self.rnn_unit = rnn_unit
 
         with tf.name_scope('input_layer'):
             self.add_input_layer()
@@ -50,21 +51,35 @@ class Model:
         )
         self.mse_weights = tf.constant(self.mse_weights)
 
-    def lstm_cell(self, output_size):
-        cell = rnn.BasicLSTMCell(
-            num_units=output_size,
-            forget_bias=1.0,
-            state_is_tuple=True,
-            activation=tf.nn.sigmoid,
-            reuse=tf.get_variable_scope().reuse
-        )
+    def rnn_cell(self, output_size):
+        cell = None
+        if self.rnn_unit == 'LSTM':
+            cell = rnn.BasicLSTMCell(
+                num_units=output_size,
+                forget_bias=1.0,
+                state_is_tuple=True,
+                activation=tf.nn.sigmoid,
+                reuse=tf.get_variable_scope().reuse
+            )
+        elif self.rnn_unit == 'GRU':
+            cell = rnn.GRUCell(
+                num_units=output_size,
+                activation=tf.nn.sigmoid,
+                reuse=tf.get_variable_scope().reuse
+            )
+        elif self.rnn_unit == 'BASIC-RNN':
+            cell = rnn.BasicRNNCell(
+                num_units=output_size,
+                activation=tf.nn.sigmoid,
+                reuse=tf.get_variable_scope().reuse
+            )
         return rnn.DropoutWrapper(cell, input_keep_prob=1 - self.dropout_rate)
 
     def add_embedding_layer(self):
         self.enc_inp = tf.unstack(self.xs, axis=1)
         self.dec_inp = [np.zeros(self.batch_size, dtype=np.int) for t in range(self.step_size)]
         layers = rnn.MultiRNNCell(
-            [self.lstm_cell(self.hidden_size) for i in range(self.layer_depth)],
+            [self.rnn_cell(self.hidden_size) for i in range(self.layer_depth)],
             state_is_tuple=True
         )
         self.dec_outputs, _ = tf.contrib.legacy_seq2seq.embedding_rnn_seq2seq(

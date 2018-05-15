@@ -118,6 +118,12 @@ def get_args():
 
     # model parameters
     parser.add_argument(
+        '--rnn-unit',
+        dest='rnn_unit',
+        type=str,
+        default='LSTM'
+    )
+    parser.add_argument(
         '--step-size',
         dest='step_size',
         type=int
