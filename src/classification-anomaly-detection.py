@@ -124,6 +124,7 @@ def visualize_dataset(model, sess, epoch, dataset_name):
             dtype=int
         )
         ground_truth = dataset[dataset_name][x_axis, 0]
+        new_batch = apply_activation(dataset[dataset_name][x_axis], tf.gradients)
         ps = model.prediction.eval(
             session=sess,
             feed_dict={
@@ -151,6 +152,10 @@ def visualize_dataset(model, sess, epoch, dataset_name):
     plt.clf()
 
     return mse
+
+def apply_activation(old_batch, gradients):
+    new_batch = old_batch
+    return new_batch
 
 if __name__ == '__main__':
     read_dataset()
@@ -215,10 +220,12 @@ if __name__ == '__main__':
                     begin_idx = batch_idx * args.batch_size
                     end_idx = min(begin_idx + args.batch_size, data_size)
 
+                    new_batch = apply_activation(dataset['train'][begin_idx: end_idx], tf.gradients)
+
                     model.train_step.run(
                         feed_dict={
-                            model.xs: dataset['train'][begin_idx: end_idx],
-                            model.ys: dataset['train'][begin_idx: end_idx],
+                            model.xs: new_batch,
+                            model.ys: new_batch,
                             model.feed_previous: False,
                             model.learning_rate: learning_rate,
                         }
