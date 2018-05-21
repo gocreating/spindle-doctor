@@ -63,41 +63,51 @@ args = get_args()
 if __name__ == '__main__':
     count = len(args.srcs)
     colors = args.colors or cm.rainbow(np.linspace(0, 1, count))
-    # colors = cm.rainbow(np.linspace(0, 1, count))
-    for src, label, column, color, line_style, marker, markersize in zip(args.srcs, args.labels, args.columns, colors, args.line_styles, args.markers, args.markersizes):
-    # for src, label, column, color in zip(args.srcs, args.labels, args.columns, colors):
-        df = pd.read_csv(
-            src,
-            names=args.names
-        )
-        sample_size = min(len(df), args.sample_size) if args.sample_size else len(df)
-        label = os.path.basename(src).split('.')[0] if label == '' else label
-        plt.plot(
-            df[args.column][0:sample_size] / 3600,
-            df[column][0:sample_size],
-            c=color,
-            label=label,
-            linestyle=line_style.replace('_', '-'),
-            linewidth=1,
-            marker=marker,
-            markevery=20,
-            markersize=markersize
-        )
+
+    if args.auto_line:
+        for src, label, column, color in zip(args.srcs, args.labels, args.columns, colors):
+            df = pd.read_csv(src, names=args.names)
+            sample_size = min(len(df), args.sample_size) if args.sample_size else len(df)
+            label = os.path.basename(src).split('.')[0] if label == '' else label
+            plt.plot(
+                df[args.column][0:sample_size] / 3600,
+                df[column][0:sample_size],
+                c=color,
+                label=label
+            )
+    else:
+        for src, label, column, color, line_style, marker, markersize in zip(args.srcs, args.labels, args.columns, colors, args.line_styles, args.markers, args.markersizes):
+            df = pd.read_csv(src, names=args.names)
+            sample_size = min(len(df), args.sample_size) if args.sample_size else len(df)
+            label = os.path.basename(src).split('.')[0] if label == '' else label
+            plt.plot(
+                df[args.column][0:sample_size] / 3600,
+                df[column][0:sample_size],
+                c=color,
+                label=label,
+                linestyle=line_style.replace('_', '-'),
+                linewidth=1,
+                marker=marker,
+                markevery=20,
+                markersize=markersize
+            )
     plt.xlabel(args.x_label, fontsize=12)
     plt.ylabel(args.y_label, fontsize=12)
     plt.title(args.title + '\n', fontsize=14)
     plt.tick_params(axis='both', which='major', labelsize=12)
     plt.tick_params(axis='both', which='minor', labelsize=12)
 
+    plt.ylim(args.ylim)
+
     # log y-axis
     if args.log_y_axis:
         dy = 0.00001
         t = np.arange(dy, 1.0, dy)
-        plt.ylim(args.ylim)
-        plt.semilogy(t, np.exp(-t/5.0))
+        plt.semilogy(t, np.exp(-t/5.0), alpha=0.0)
+
     if args.grid:
         plt.grid(True)
-    # legend_outside = False
+
     if args.legend_outside:
         lgd = plt.legend(loc='center right', bbox_to_anchor=(args.legend_outside, 0.5), fontsize=10)
     else:
