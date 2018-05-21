@@ -86,9 +86,9 @@ def visualize(mses):
     f, axarr = plt.subplots(2, sharex=True)
 
     axarr[0].set_title(args.title)
-    axarr[0].set_ylabel('Vibration Signal')
+    axarr[0].set_ylabel('Vibration Signal (g)')
     axarr[1].set_ylabel('Reconstruct Error (MSE)')
-    plt.xlabel('Bearing Life')
+    plt.xlabel('Bearing Life (390ms)')
 
     threshold = args.threshold
     anomaly_flags = mses >= threshold
@@ -97,10 +97,10 @@ def visualize(mses):
     colored_lines = LineCollection(lines, colors=colors, linewidths=(1,))
     axarr[0].add_collection(colored_lines)
     axarr[0].autoscale_view()
-    axarr[0].plot([], [], c='green', label='normal')
-    axarr[0].plot([], [], c='red', label='anomalous')
+    axarr[0].plot([], [], c='green', label='predicted normal')
+    axarr[0].plot([], [], c='red', label='predicted anomalous')
     bound = xs[int(len(xs) * 0.9)]
-    axarr[0].plot([bound, bound], [np.amin(ys), np.amax(ys)], color='blue', linestyle='--', linewidth=1)
+    axarr[0].plot([bound, bound], [np.amin(ys), np.amax(ys)], color='blue', linestyle='--', linewidth=1, label='actual anomalous')
     axarr[0].legend()
 
     axarr[1].plot(xs, mses, color='blue', label='reconstruct error')
