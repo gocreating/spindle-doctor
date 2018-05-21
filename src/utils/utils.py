@@ -123,6 +123,12 @@ def get_args():
 
     # model parameters
     parser.add_argument(
+        '--no-shuffle',
+        dest='no_shuffle',
+        action='store_true',
+        default=False
+    )
+    parser.add_argument(
         '--rnn-unit',
         dest='rnn_unit',
         type=str,
@@ -177,6 +183,11 @@ def get_args():
     )
 
     # visualization parameters
+    parser.add_argument(
+        '--auto-line',
+        dest='auto_line',
+        action='store_true'
+    )
     parser.add_argument(
         '--sample-size',
         dest='sample_size',

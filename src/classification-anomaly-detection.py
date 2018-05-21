@@ -65,7 +65,8 @@ def read_dataset():
         normal_data = np.reshape(get_windowed_data(df_normal.values, args.step_size), (-1, args.step_size))
         anomalous_data = np.reshape(get_windowed_data(df_anomalous.values, args.step_size), (-1, args.step_size))
 
-        np.random.shuffle(normal_data)
+        if not args.no_shuffle:
+            np.random.shuffle(normal_data)
         train_data, validate_data = np.split(normal_data, [int(.9 * len(normal_data))])
 
         dataset['train'] = np.concatenate((dataset['train'], train_data), axis=0)
