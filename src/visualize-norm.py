@@ -38,13 +38,14 @@ for i in [1, 5, 9]:
             arrowstyle='->, head_length=0.7, head_width=0.5',
             connectionstyle='angle, angleA=0, angleB=-90, rad=0',
             linestyle='--',
-            color='grey'
+            color='grey',
+            mutation_scale=16
         ),
     )
 plt.tick_params(axis='both', which='major', labelsize=18)
 plt.ylim([0, 1])
 plt.legend(fontsize=16)
-plt.title('Break Points Mapping', fontsize=20)
+plt.title('Break Points Mapping\n', fontsize=20)
 plt.xlabel(r'Raw data: $x$', fontsize=20)
 plt.ylabel(r'Cumulative probability: $cdf(x)$', fontsize=20)
 
