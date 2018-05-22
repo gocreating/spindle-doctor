@@ -224,6 +224,11 @@ def get_args():
         type=str
     )
     parser.add_argument(
+        '--legend-location',
+        dest='legend_location',
+        type=str
+    )
+    parser.add_argument(
         '--colors',
         nargs='+',
         type=str

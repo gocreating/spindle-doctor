@@ -111,7 +111,10 @@ if __name__ == '__main__':
     if args.legend_outside:
         lgd = plt.legend(loc='center right', bbox_to_anchor=(args.legend_outside, 0.5), fontsize=10)
     else:
-        lgd = plt.legend(fontsize=10)
+        if args.legend_location:
+            lgd = plt.legend(fontsize=10, loc=args.legend_location)
+        else:
+            lgd = plt.legend(fontsize=10)
 
     dest_dir = prepare_directory(os.path.dirname(args.dest))
 
