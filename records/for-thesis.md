@@ -294,6 +294,74 @@ python visualize-loss.py \
 
 ### 實驗2 - Global K-means (待train)
 
+																FN		FP		FPR									TN		TP		TPR
+Global k-means, low threshold		3310	20590	0.31882442204363515	43991	3789	0.5337371460769122
+Global k-means, high threshold	3770	18782	0.2908285718709837	45799	3329	0.4689392872235526
+
+```
+# T = 0.016389471466757 ~ 0.0239224008033788
+python test-classification-anomaly-detection.py \
+    --columns "avg" "klevel_normalized_fft1" "anomaly" \
+    --column "klevel_normalized_fft1" \
+    --title "Anomaly Detection by NVM" \
+    --threshold 0.016389471466757 \
+    --scope phm2012 \
+    --name test-2018-05-23-phm-normalized-fft1-k-means-256-low-threshold \
+    --step-size 32 \
+    --hidden-size 64 \
+    --embedding-size 128 \
+    --symbol-size 256 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --src-centroid "../build/meta/phm2012/centroids/centroid-256.csv" \
+    --sample-size 256 \
+    --src "../build/models/phm2012/2018-05-23-phm-normalized-fft1-k-means-256/model" \
+    --test-src "../build/data/phm2012/feature-256-klevel-extracted/Learning_set-Bearing1_1-acc.csv" \
+    --smooth 15 \
+    --report-roc
+python test-classification-anomaly-detection.py \
+    --columns "avg" "klevel_normalized_fft1" "anomaly" \
+    --column "klevel_normalized_fft1" \
+    --title "Anomaly Detection by Global K-means" \
+    --threshold 0.0239224008033788 \
+    --scope phm2012 \
+    --name test-2018-05-23-phm-normalized-fft1-k-means-256-high-threshold \
+    --step-size 32 \
+    --hidden-size 64 \
+    --embedding-size 128 \
+    --symbol-size 256 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --src-centroid "../build/meta/phm2012/centroids/centroid-256.csv" \
+    --sample-size 256 \
+    --src "../build/models/phm2012/2018-05-23-phm-normalized-fft1-k-means-256/model" \
+    --test-src "../build/data/phm2012/feature-256-klevel-extracted/Learning_set-Bearing1_1-acc.csv" \
+    --smooth 15 \
+    --report-roc
+```
+
+```
+python visualize-roc.py \
+    --srcs \
+        "Moving average" 12 6 "-" "-" \
+        "..\build\plots\phm2012\test-2018-04-15-phm-normalized-fft1-moving-average\Learning_set-Bearing1_1-acc\roc-report-test-2018-04-15-phm-normalized-fft1-moving-average(seed=0, smooth=15).csv" \
+        \
+        "EncDec-AD" 12 6 "-" "-" \
+        "..\build\plots\phm2012\test-2018-05-15-phm-normalized-fft1-regression-no-shuffle\Learning_set-Bearing1_1-acc\roc-report-test-2018-05-15-phm-normalized-fft1-regression-no-shuffle(seed=0, smooth=15).csv" \
+        \
+        "Global K-means" 12 6 "-" "-" \
+        "..\build\plots\phm2012\test-2018-05-23-phm-normalized-fft1-k-means-256-low-threshold\Learning_set-Bearing1_1-acc\roc-report-test-2018-05-23-phm-normalized-fft1-k-means-256-low-threshold(seed=0, smooth=15).csv" \
+        \
+        "Static Quantization (NVM)" 0 0 "*" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-256-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-256-high-threshold(seed=0, smooth=15).csv" \
+    --title "ROC Space of Anomaly Detection Models" \
+    --x-label "False Positive Rate (FPR)" \
+    --y-label "True Positive Rate (TPR)" \
+    --dest "..\build\plots\thesis\roc-static-vs-dynamic-comparison.eps"
+```
+
 ## 實驗3 - 比較不同RNN Units的差異
 
 ```
@@ -336,6 +404,44 @@ python visualize-loss.py \
 ```
 
 ## 實驗4 - 比較有無smoothing的差異
+
+```
+python visualize-roc.py \
+    --srcs \
+        "32-segment (no smoothing)" 0 0 "^" "k" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-32-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-32-high-threshold(seed=0, smooth=1).csv" \
+        \
+        "64-segment (no smoothing)" 0 0 "d" "k" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-64-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-64-high-threshold(seed=0, smooth=1).csv" \
+        \
+        "128-segment (no smoothing)" 0 0 "+" "k" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-128-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-128-high-threshold(seed=0, smooth=1).csv" \
+        \
+        "256-segment (no smoothing)" 0 0 "*" "k" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-256-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-256-high-threshold(seed=0, smooth=1).csv" \
+        \
+        "512-segment (no smoothing)" 0 0 "x" "k" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-512-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-512-high-threshold(seed=0, smooth=1).csv" \
+        \
+        "32-segment (smoothed)" 0 0 "^" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-32-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-32-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "64-segment (smoothed)" 0 0 "d" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-64-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-64-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "128-segment (smoothed)" 0 0 "+" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-128-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-128-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "256-segment (smoothed)" 0 0 "*" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-256-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-256-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "512-segment (smoothed)" 0 0 "x" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-512-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-512-high-threshold(seed=0, smooth=15).csv" \
+    --title "ROC Space of Anomaly Detection Models" \
+    --x-label "False Positive Rate (FPR)" \
+    --y-label "True Positive Rate (TPR)" \
+    --dest "..\build\plots\thesis\roc-smoothing-vs-no-smoothing.eps"
+```
 
 ## 實驗5 - 比較QUART整體改進的效能差異
 
@@ -413,4 +519,277 @@ python visualize-loss.py \
     --sample-size 300 \
     --grid \
     --log-y-axis
+```
+
+												FN		FP		FPR									TN		TP		TPR
+32-segment(smooth=1)		2994	2382	0.03688391322525201	62199	4105	0.5782504578109593
+32-segment(smooth=15)		2639	2177	0.03370960499218036	62404	4460	0.6282575010564868
+64-segment(smooth=1)		3157	7527	0.11655130766014772	57054	3942	0.5552894773911818
+64-segment(smooth=15)		2825	8036	0.12443288273640854	56545	4274	0.6020566276940414
+128-segment(smooth=1)		3961	4039	0.06254161440671405	60542	3138	0.4420340893083533
+128-segment(smooth=15)	3873	4795	0.07424784379306608	59786	3226	0.4544302014368221
+256-segment(smooth=1)		0			20879	0.3232994224307459	43702	7099	1.0
+256-segment(smooth=15)	0			20797	0.3220296991375172	43784	7099	1.0
+512-segment(smooth=1)		0			39237	0.6075625958099131	25344	7099	1.0
+512-segment(smooth=15)	0			39988	0.619191403044239		24593	7099	1.0
+
+```
+python visualize-roc.py \
+    --srcs \
+        "Moving average" 12 6 "-" "-" \
+        "..\build\plots\phm2012\test-2018-04-15-phm-normalized-fft1-moving-average\Learning_set-Bearing1_1-acc\roc-report-test-2018-04-15-phm-normalized-fft1-moving-average(seed=0, smooth=15).csv" \
+        \
+        "EncDec-AD" 12 6 "-" "-" \
+        "..\build\plots\phm2012\test-2018-05-15-phm-normalized-fft1-regression-no-shuffle\Learning_set-Bearing1_1-acc\roc-report-test-2018-05-15-phm-normalized-fft1-regression-no-shuffle(seed=0, smooth=15).csv" \
+        \
+        "32-segment" 0 0 "^" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-32-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-32-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "64-segment" 0 0 "d" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-64-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-64-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "128-segment" 0 0 "+" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-128-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-128-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "256-segment" 0 0 "*" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-256-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-256-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "512-segment" 0 0 "x" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-512-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-512-high-threshold(seed=0, smooth=15).csv" \
+    --title "ROC Space of Anomaly Detection Models" \
+    --x-label "False Positive Rate (FPR)" \
+    --y-label "True Positive Rate (TPR)" \
+    --dest "..\build\plots\thesis\roc-segment-amount-comparison.eps"
+```
+
+## 實驗7：相容性測試(挑選實驗圖中)
+
+100s @1-epoch
+93s  @1-epoch
+1.07x
+
+```
+python visualize-loss.py \
+    --srcs \
+        "..\build\plots\phm2012\2018-04-15-phm-normalized-paa-regression-no-shuffle\log.csv" \
+        "..\build\plots\phm2012\2018-04-15-phm-normalized-paa-regression-no-shuffle\log.csv" \
+        "..\build\plots\phm2012\2018-04-15-phm-normalized-paa-classification-256-3\log.csv" \
+        "..\build\plots\phm2012\2018-04-15-phm-normalized-paa-classification-256-3\log.csv" \
+    --labels \
+        "PAA with anomalous data" \
+        "PAA with normal data" \
+        "PAA + NVM with anomalous data" \
+        "PAA + NVM with normal data" \
+    --names "epochs" "validate_loss" "anomalous_loss" "elapsed_time" \
+    --column "elapsed_time" \
+    --columns \
+        "anomalous_loss" \
+        "validate_loss" \
+        "anomalous_loss" \
+        "validate_loss" \
+    --colors "k" "k" "c" "c" \
+    --line-styles ":" "_" ":" "_" \
+    --markers "," "," "D" "D" \
+    --markersize 3 3 3 3 \
+    --dest "..\build\plots\thesis\paa-vs-paa-plus-nvm.eps" \
+    --x-label "Training Time (hour)" \
+    --y-label "Loss (MSE)" \
+    --title "Loss Trend of Different Data Reduction Approaches" \
+    --grid \
+    --log-y-axis \
+    --ylim 0.0003 0.1 \
+    --sample-size 300
+```
+
+																FN		FP		FPR										TN		TP		TPR
+PAA, low threshold							0			64581	1.0										0			7099	1.0
+PAA, high threshold							0			64581	1.0										0			7099	1.0
+PAA, no shuffle, low threshold	0			64581	1.0										0			7099	1.0
+PAA + NVM, low threshold				0			10841	0.1678667100230718		53740	7099	1.0
+PAA + NVM, high threshold				1192	2157	0.033399916384075815	62424	5907	0.8320890266234681
+PAA + NVM, low threshold (3)		50		7026	0.10879360802712872		57555	7049	0.9929567544724609
+PAA + NVM, high threshold (3)		1864	1221	0.01890648952478283		63360	5235	0.7374278067333427
+
+
+```
+# PAA 64 step, low threshold
+# T = 0.00860098651518408 ~ 0.0130754217333603
+python test-regression-anomaly-detection.py \
+    --columns "avg" "normalized_fft1" "anomaly" \
+    --column "normalized_fft1" \
+    --title "Anomaly Detection by PAA Model" \
+    --threshold 0.00860098651518408 \
+    --scope phm2012 \
+    --name test-2018-04-15-phm-normalized-paa-regression-low-threshold \
+    --step-size 64 \
+    --input-size 1 \
+    --hidden-size 64 \
+    --output-size 1 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --sample-size 256 \
+    --report-roc \
+    --src ../build/models/phm2012/2018-04-15-phm-normalized-paa-regression/model \
+    --test-src ../build/data/phm2012/feature-extracted/Learning_set-Bearing1_1-acc.csv \
+    --smooth 15
+
+# PAA 64 step, high threshold
+# T = 0.00860098651518408 ~ 0.0130754217333603
+python test-regression-anomaly-detection.py \
+    --columns "avg" "normalized_fft1" "anomaly" \
+    --column "normalized_fft1" \
+    --title "Anomaly Detection by PAA Model" \
+    --threshold 0.0130754217333603 \
+    --scope phm2012 \
+    --name test-2018-04-15-phm-normalized-paa-regression-high-threshold \
+    --step-size 64 \
+    --input-size 1 \
+    --hidden-size 64 \
+    --output-size 1 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --sample-size 256 \
+    --report-roc \
+    --src ../build/models/phm2012/2018-04-15-phm-normalized-paa-regression/model \
+    --test-src ../build/data/phm2012/feature-extracted/Learning_set-Bearing1_1-acc.csv \
+    --smooth 15
+
+# PAA 64 step, low threshold, no shuffle
+# T = 0.00827427276434671 ~ 0.00987022488178419
+python test-regression-anomaly-detection.py \
+    --columns "avg" "normalized_fft1" "anomaly" \
+    --column "normalized_fft1" \
+    --title "Anomaly Detection by PAA Model" \
+    --threshold 0.00827427276434671 \
+    --scope phm2012 \
+    --name test-2018-04-15-phm-normalized-paa-regression-no-shuffle-low-threshold \
+    --step-size 64 \
+    --input-size 1 \
+    --hidden-size 64 \
+    --output-size 1 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --sample-size 256 \
+    --report-roc \
+    --src ../build/models/phm2012/2018-04-15-phm-normalized-paa-regression-no-shuffle/model \
+    --test-src ../build/data/phm2012/feature-extracted/Learning_set-Bearing1_1-acc.csv \
+    --smooth 15
+
+# PAA + NVM, low threshold
+# T = 0.000999843341186408 ~ 0.00436911697865524
+python test-classification-anomaly-detection.py \
+    --columns "avg" "level_normalized_fft1" "anomaly" \
+    --column "level_normalized_fft1" \
+    --title "Anomaly Detection by NVM" \
+    --threshold 0.000999843341186408 \
+    --scope phm2012 \
+    --name test-2018-04-15-phm-normalized-paa-classification-256-low-threshold \
+    --step-size 32 \
+    --hidden-size 64 \
+    --embedding-size 128 \
+    --symbol-size 256 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --src-breakpoint "../build/meta/phm2012/breakpoints-from-feature/breakpoint-256.csv" \
+    --sample-size 256 \
+    --src "../build/models/phm2012/2018-04-15-phm-normalized-paa-classification-256/model" \
+    --test-src "../build/data/phm2012/feature-256-level-extracted/Learning_set-Bearing1_1-acc.csv" \
+    --smooth 15 \
+    --report-roc
+
+# PAA + NVM, high threshold
+# T = 0.000999843341186408 ~ 0.00436911697865524
+python test-classification-anomaly-detection.py \
+    --columns "avg" "level_normalized_fft1" "anomaly" \
+    --column "level_normalized_fft1" \
+    --title "Anomaly Detection by NVM" \
+    --threshold 0.00436911697865524 \
+    --scope phm2012 \
+    --name test-2018-04-15-phm-normalized-paa-classification-256-high-threshold \
+    --step-size 32 \
+    --hidden-size 64 \
+    --embedding-size 128 \
+    --symbol-size 256 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --src-breakpoint "../build/meta/phm2012/breakpoints-from-feature/breakpoint-256.csv" \
+    --sample-size 256 \
+    --src "../build/models/phm2012/2018-04-15-phm-normalized-paa-classification-256/model" \
+    --test-src "../build/data/phm2012/feature-256-level-extracted/Learning_set-Bearing1_1-acc.csv" \
+    --smooth 15 \
+    --report-roc
+
+# PAA + NVM - 3, low threshold
+# T = 0.0024559026141156 ~ 0.00771249597015517
+python test-classification-anomaly-detection.py \
+    --columns "avg" "level_normalized_fft1" "anomaly" \
+    --column "level_normalized_fft1" \
+    --title "Anomaly Detection by NVM" \
+    --threshold 0.0024559026141156 \
+    --scope phm2012 \
+    --name test-2018-04-15-phm-normalized-paa-classification-256-3-low-threshold \
+    --step-size 32 \
+    --hidden-size 64 \
+    --embedding-size 128 \
+    --symbol-size 256 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --src-breakpoint "../build/meta/phm2012/breakpoints-from-feature/breakpoint-256.csv" \
+    --sample-size 256 \
+    --src "../build/models/phm2012/2018-04-15-phm-normalized-paa-classification-256-3/model" \
+    --test-src "../build/data/phm2012/feature-256-level-extracted/Learning_set-Bearing1_1-acc.csv" \
+    --smooth 15 \
+    --report-roc
+
+# PAA + NVM - 3, high threshold
+# T = 0.0024559026141156 ~ 0.00771249597015517
+python test-classification-anomaly-detection.py \
+    --columns "avg" "level_normalized_fft1" "anomaly" \
+    --column "level_normalized_fft1" \
+    --title "Anomaly Detection by NVM" \
+    --threshold 0.00771249597015517 \
+    --scope phm2012 \
+    --name test-2018-04-15-phm-normalized-paa-classification-256-3-high-threshold \
+    --step-size 32 \
+    --hidden-size 64 \
+    --embedding-size 128 \
+    --symbol-size 256 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --src-breakpoint "../build/meta/phm2012/breakpoints-from-feature/breakpoint-256.csv" \
+    --sample-size 256 \
+    --src "../build/models/phm2012/2018-04-15-phm-normalized-paa-classification-256-3/model" \
+    --test-src "../build/data/phm2012/feature-256-level-extracted/Learning_set-Bearing1_1-acc.csv" \
+    --smooth 15 \
+    --report-roc
+```
+
+```
+python visualize-roc.py \
+    --srcs \
+        "Moving average" 12 6 "-" "-" \
+        "..\build\plots\phm2012\test-2018-04-15-phm-normalized-fft1-moving-average\Learning_set-Bearing1_1-acc\roc-report-test-2018-04-15-phm-normalized-fft1-moving-average(seed=0, smooth=15).csv" \
+        \
+        "EncDec-AD" 12 6 "-" "-" \
+        "..\build\plots\phm2012\test-2018-05-15-phm-normalized-fft1-regression-no-shuffle\Learning_set-Bearing1_1-acc\roc-report-test-2018-05-15-phm-normalized-fft1-regression-no-shuffle(seed=0, smooth=15).csv" \
+        \
+        "NVM" 0 0 "*" "c" \
+        "..\build\plots\phm2012\test-phm-normalized-fft1-classification-256-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-256-high-threshold(seed=0, smooth=15).csv" \
+        \
+        "PAA" 0 0 "^" "c" \
+        "..\build\plots\phm2012\test-2018-04-15-phm-normalized-paa-regression-low-threshold\Learning_set-Bearing1_1-acc\roc-report-test-2018-04-15-phm-normalized-paa-regression-low-threshold(seed=0, smooth=15).csv" \
+        \
+        "PAA+NVM" 0 0 "x" "c" \
+        "..\build\plots\phm2012\test-2018-04-15-phm-normalized-paa-classification-256-3-low-threshold\Learning_set-Bearing1_1-acc\roc-report-test-2018-04-15-phm-normalized-paa-classification-256-3-low-threshold(seed=0, smooth=15).csv" \
+    --title "ROC Space of Anomaly Detection Models" \
+    --x-label "False Positive Rate (FPR)" \
+    --y-label "True Positive Rate (TPR)" \
+    --dest "..\build\plots\thesis\roc-compatibility-comparison.eps"
 ```
