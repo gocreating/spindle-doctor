@@ -135,7 +135,7 @@ def visualize_dataset(model, sess, epoch, dataset_name):
             dtype=int
         )
         ground_truth = dataset[dataset_name][x_axis, 0]
-        assignments, ps = sess.run([model.restored_prediction, model.prediction], feed_dict={
+        assignments, ps = sess.run([model.expanded_assignments, model.prediction], feed_dict={
             model.xs: dataset[dataset_name][x_axis],
             model.ys: dataset[dataset_name][x_axis],
             model.feed_previous: True,

@@ -59,6 +59,9 @@ class Model:
     def add_kmeans_layer(self):
         data_points = self.xs[:, 0]
         self.centroids = tf.Variable(self.initial_centroids)
+        self.accumulated_value_per_centroid = tf.Variable(tf.zeros_like(self.initial_centroids), dtype=tf.float64)
+        self.count_per_centroid = tf.Variable(tf.zeros_like(self.initial_centroids))
+
         self.centroids.assign(self.initial_centroids)
         duplicated_xs = tf.transpose(tf.reshape(tf.tile(data_points, [self.cluster_size]), [self.cluster_size, self.batch_size]))
         distance_map = tf.abs(duplicated_xs - self.centroids)
@@ -67,14 +70,27 @@ class Model:
         self.assignments = tf.argmin(distance_map, axis=1)
 
         # update phase
-        self.masks = tf.cast(tf.one_hot(self.assignments, self.cluster_size), tf.bool)
-        self.updated_centroids = tf.map_fn(
+        self.one_hotted_assignments = tf.transpose(tf.one_hot(self.assignments, self.cluster_size))
+        self.count_per_centroid = self.count_per_centroid + tf.reduce_sum(tf.cast(self.one_hotted_assignments, tf.float64), axis=1)
+        self.masks = tf.cast(self.one_hotted_assignments, tf.bool)
+        to_be_added = tf.map_fn(
             # if mask contains only False, nan will be returned
-            (lambda mask: tf.reduce_mean(tf.boolean_mask(data_points, mask))),
-            tf.transpose(self.masks),
+            (lambda mask: tf.reduce_sum(tf.boolean_mask(data_points, mask))),
+            self.masks,
             dtype=tf.float64,
             parallel_iterations=self.cluster_size
         )
+        self.accumulated_value_per_centroid = self.accumulated_value_per_centroid + to_be_added
+        self.updated_centroids = tf.div(self.accumulated_value_per_centroid, self.count_per_centroid)
+
+        # self.masks = tf.cast(tf.one_hot(self.assignments, self.cluster_size), tf.bool)
+        # self.updated_centroids = tf.map_fn(
+        #     # if mask contains only False, nan will be returned
+        #     (lambda mask: tf.reduce_mean(tf.boolean_mask(data_points, mask))),
+        #     tf.transpose(self.masks),
+        #     dtype=tf.float64,
+        #     parallel_iterations=self.cluster_size
+        # )
         # ref: https://stackoverflow.com/questions/42043488/replace-nan-values-in-tensorflow-tensor
         self.centroids = tf.where(tf.is_nan(self.updated_centroids), self.centroids, self.updated_centroids)
 
