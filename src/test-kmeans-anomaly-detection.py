@@ -152,9 +152,9 @@ def eval_ROC(mses):
         os.path.basename(args.test_src).rsplit('.', 1)[0],
         'roc-report-{0}(seed={1}, smooth={2}).csv'.format(args.name, args.seed, args.smooth)
     )
+    print('TP =\t{0}\nFP =\t{1}\nTN =\t{2}\nFN =\t{3}\nTPR =\t{4}\nFPR =\t{5}'.format(TP, FP, TN, FN, TPR, FPR))
     df_roc = pd.DataFrame({ 'TP': [TP], 'FP': [FP], 'TN': [TN], 'FN': [FN], 'TPR': [TPR], 'FPR': [FPR] })
     df_roc.to_csv(roc_dest)
-    print('TP =\t{0}\nFP =\t{1}\nTN =\t{2}\nFN =\t{3}\nTPR =\t{4}\nFPR =\t{5}'.format(TP, FP, TN, FN, TPR, FPR))
 
 if __name__ == '__main__':
     start_time = time.time()

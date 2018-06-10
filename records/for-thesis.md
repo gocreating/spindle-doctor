@@ -342,6 +342,58 @@ python test-classification-anomaly-detection.py \
     --report-roc
 ```
 
+### 實驗2 - Incremental K-means
+
+																		FN		FP		FPR									TN		TP		TPR
+Incremental k-means, low threshold	339		5776	0.0894380700205943	58805	6760	0.9522467953232849
+Incremental k-means, high threshold	6120	0			0.0									64581	979		0.13790674742921538
+
+```
+# T = 0.000423571231727048 ~ 0.00388736246647072
+python test-kmeans-anomaly-detection.py \
+    --columns "avg" "normalized_fft1" "anomaly" \
+    --column "normalized_fft1" \
+    --title "Anomaly Detection by K-means" \
+    --threshold 0.000423571231727048 \
+    --scope phm2012 \
+    --name test-2018-05-23-phm-normalized-fft1-incremental-k-means-256-low-threshold \
+    --step-size 32 \
+    --hidden-size 64 \
+    --embedding-size 128 \
+    --symbol-size 256 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --src-breakpoint "../build/meta/phm2012/breakpoints-from-feature/breakpoint-256.csv" \
+    --sample-size 256 \
+    --src "../build/models/phm2012/2018-05-23-phm-normalized-fft1-incremental-k-means-256/model" \
+    --test-src "../build/data/phm2012/feature-extracted/Learning_set-Bearing1_1-acc.csv" \
+    --smooth 15 \
+    --report-roc
+python test-kmeans-anomaly-detection.py \
+    --columns "avg" "normalized_fft1" "anomaly" \
+    --column "normalized_fft1" \
+    --title "Anomaly Detection by K-means" \
+    --threshold 0.00388736246647072 \
+    --scope phm2012 \
+    --name test-2018-05-23-phm-normalized-fft1-incremental-k-means-256-high-threshold \
+    --step-size 32 \
+    --hidden-size 64 \
+    --embedding-size 128 \
+    --symbol-size 256 \
+    --batch-size 128 \
+    --layer-depth 2 \
+    --dropout-rate 0.1 \
+    --src-breakpoint "../build/meta/phm2012/breakpoints-from-feature/breakpoint-256.csv" \
+    --sample-size 256 \
+    --src "../build/models/phm2012/2018-05-23-phm-normalized-fft1-incremental-k-means-256/model" \
+    --test-src "../build/data/phm2012/feature-extracted/Learning_set-Bearing1_1-acc.csv" \
+    --smooth 15 \
+    --report-roc
+```
+
+### 實驗2 - Loss Trend & ROC
+
 ```
 python visualize-roc.py \
     --srcs \
@@ -351,8 +403,11 @@ python visualize-roc.py \
         "EncDec-AD" 12 6 "-" "-" \
         "..\build\plots\phm2012\test-2018-05-15-phm-normalized-fft1-regression-no-shuffle\Learning_set-Bearing1_1-acc\roc-report-test-2018-05-15-phm-normalized-fft1-regression-no-shuffle(seed=0, smooth=15).csv" \
         \
-        "Global K-means" 12 6 "-" "-" \
+        "Dynamic Quantization Baseline (Global K-means)" -60 25 "-" "-" \
         "..\build\plots\phm2012\test-2018-05-23-phm-normalized-fft1-k-means-256-low-threshold\Learning_set-Bearing1_1-acc\roc-report-test-2018-05-23-phm-normalized-fft1-k-means-256-low-threshold(seed=0, smooth=15).csv" \
+        \
+        "Dynamic Quantization (K-means)" 12 6 "x" "c" \
+        "..\build\plots\phm2012\test-2018-05-23-phm-normalized-fft1-incremental-k-means-256-low-threshold\Learning_set-Bearing1_1-acc\roc-report.csv" \
         \
         "Static Quantization (NVM)" 0 0 "*" "c" \
         "..\build\plots\phm2012\test-phm-normalized-fft1-classification-256-high-threshold\Learning_set-Bearing1_1-acc\roc-report-test-phm-normalized-fft1-classification-256-high-threshold(seed=0, smooth=15).csv" \
@@ -360,6 +415,44 @@ python visualize-roc.py \
     --x-label "False Positive Rate (FPR)" \
     --y-label "True Positive Rate (TPR)" \
     --dest "..\build\plots\thesis\roc-static-vs-dynamic-comparison.eps"
+```
+
+150s @1-epoch
+104s @1-epoch
+1.4x
+
+```
+python visualize-loss.py \
+    --srcs \
+        "..\build\plots\phm2012\phm-normalized-fft1-classification-128\log.csv" \
+        "..\build\plots\phm2012\phm-normalized-fft1-classification-128\log.csv" \
+        "..\build\plots\phm2012\2018-05-23-phm-normalized-fft1-incremental-k-means-256\log.csv" \
+        "..\build\plots\phm2012\2018-05-23-phm-normalized-fft1-incremental-k-means-256\log.csv" \
+    --labels \
+        "Static Quantization (NVM) with anomalous data" \
+        "Static Quantization (NVM) with normal data" \
+        "Dynamic Quantization (K-means) with anomalous data" \
+        "Dynamic Quantization (K-means) with normal data" \
+    --names "epochs" "validate_loss" "anomalous_loss" "elapsed_time" \
+    --column "elapsed_time" \
+    --columns \
+        "anomalous_loss" \
+        "validate_loss" \
+        "anomalous_loss" \
+        "validate_loss" \
+    --colors "k" "k" "c" "c" \
+    --line-styles ":" "_" ":" "_" \
+    --markers "," "," "D" "D" \
+    --markersize 3 3 3 3 3 3 \
+    --dest "..\build\plots\thesis\static-vs-dynamic-quantization.eps" \
+    --x-label "Training Time (hour)" \
+    --y-label "Loss (MSE)" \
+    --title "Comparison of Different Quantization" \
+    --grid \
+    --log-y-axis \
+    --ylim 0.0003 0.05 \
+    --legend-location "upper right" \
+    --sample-size 300
 ```
 
 ## 實驗3 - 比較不同RNN Units的差異
