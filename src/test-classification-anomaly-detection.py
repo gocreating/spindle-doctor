@@ -110,12 +110,13 @@ def visualize(mses):
     threshold = args.threshold
     anomaly_flags = mses >= threshold
     colors = ['red' if a else 'green' for a in anomaly_flags]
+    linestyles = ['dotted' if a else 'solid' for a in anomaly_flags]
     lines = [((x0,y0), (x1,y1)) for x0, y0, x1, y1 in zip(xs[:-1], ys[:-1], xs[1:], ys[1:])]
-    colored_lines = LineCollection(lines, colors=colors, linewidths=(1,))
+    colored_lines = LineCollection(lines, colors=colors, linestyles=linestyles, linewidths=(1,))
     axarr[0].add_collection(colored_lines)
     axarr[0].autoscale_view()
     axarr[0].plot([], [], c='green', label='predicted normal')
-    axarr[0].plot([], [], c='red', label='predicted anomalous')
+    axarr[0].plot([], [], c='red', linestyle='dotted', label='predicted anomalous')
     bound = xs[int(len(xs) * 0.9)]
     axarr[0].plot([bound, bound], [np.amin(ys), np.amax(ys)], color='blue', linestyle='--', linewidth=1, label='actual anomalous')
     axarr[0].legend()
