@@ -550,8 +550,8 @@ python visualize-loss.py \
         "..\build\plots\phm2012\2018-04-15-phm-normalized-fft1-classification-256\log.csv" \
         "..\build\plots\phm2012\2018-04-15-phm-normalized-fft1-classification-256\log.csv" \
     --labels \
-        "EncDec-AD model with anomalous data" \
-        "EncDec-AD model with normal data" \
+        "EncDec-AD model with anomalous data [5]" \
+        "EncDec-AD model with normal data [5]" \
         "QUART framework with anomalous data" \
         "QUART framework with normal data" \
     --names "epochs" "validate_loss" "anomalous_loss" "elapsed_time" \
@@ -614,7 +614,8 @@ python visualize-loss.py \
     --log-y-axis
 ```
 
-												FN		FP		FPR									TN		TP		TPR
+												FN		FP		FPR									TN		TP		TPR									Accuracy
+EncDec									5087	6213	0.09620476610767872	58368	2012	0.283420200028173		60380 / 71680 = 84%
 32-segment(smooth=1)		2994	2382	0.03688391322525201	62199	4105	0.5782504578109593
 32-segment(smooth=15)		2639	2177	0.03370960499218036	62404	4460	0.6282575010564868
 64-segment(smooth=1)		3157	7527	0.11655130766014772	57054	3942	0.5552894773911818
@@ -622,7 +623,7 @@ python visualize-loss.py \
 128-segment(smooth=1)		3961	4039	0.06254161440671405	60542	3138	0.4420340893083533
 128-segment(smooth=15)	3873	4795	0.07424784379306608	59786	3226	0.4544302014368221
 256-segment(smooth=1)		0			20879	0.3232994224307459	43702	7099	1.0
-256-segment(smooth=15)	0			20797	0.3220296991375172	43784	7099	1.0
+256-segment(smooth=15)	0			20797	0.3220296991375172	43784	7099	1.0									50883/71680 = 71%
 512-segment(smooth=1)		0			39237	0.6075625958099131	25344	7099	1.0
 512-segment(smooth=15)	0			39988	0.619191403044239		24593	7099	1.0
 
