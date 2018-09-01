@@ -1,5 +1,6 @@
 raw/
 tongtai/build/data
 *.pyc
-build/data
+build/data/*
+!build/data/edge-server/
 .remote-sync.json
