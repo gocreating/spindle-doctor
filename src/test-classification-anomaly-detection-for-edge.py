@@ -24,12 +24,14 @@ from bisect import bisect_left
 from utils.utils import get_args, prepare_directory
 from utils.preprocess import get_windowed_data
 from utils.input import get_batch
-import importlib
-
-p = importlib.import_module('extract-feature')
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 args = get_args()
+
+def get_fft(values, batch_size):
+    yf = np.fft.fft(values)
+    maximums = np.partition(-np.abs(yf[:batch_size//2]), 2)
+    return -maximums[0], -maximums[1]
 
 def read_dataset():
     dataset = np.empty((0, args.step_size))
@@ -44,7 +46,7 @@ def read_dataset():
     ffts = []
     for batch_idx, df_batch in get_batch(df_chunks, args.batch_size):
         values = np.array(df_batch['x'])
-        fft1, fft2 = p.get_fft(values, args.batch_size)
+        fft1, fft2 = get_fft(values, args.batch_size)
         ffts.append(fft1)
     ffts = np.array(ffts)
     minimum = np.amin(ffts)

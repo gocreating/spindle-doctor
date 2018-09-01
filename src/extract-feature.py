@@ -179,7 +179,7 @@ def get_anomaly_flags(df):
     anomaly_flags = np.concatenate((normal_flags, anomalous_flags))
     return anomaly_flags
 
-def main():
+if __name__ == '__main__':
     args = get_args()
 
     for src, dest in zip(args.srcs, args.dests):
@@ -219,5 +219,3 @@ def main():
             header=True,
             index=False
         )
-
-main()
