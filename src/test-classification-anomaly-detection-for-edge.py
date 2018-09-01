@@ -2,18 +2,18 @@
 """
 Usage:
 python test-classification-anomaly-detection-for-edge.py ^
-    --columns "avg" "level_normalized_fft1" "anomaly" ^
-    --column "level_normalized_fft1" ^
-    --threshold 0.000403317078173349 ^
+    --threshold 0.016 ^
     --step-size 32 ^
     --hidden-size 64 ^
     --embedding-size 128 ^
-    --symbol-size 8 ^
+    --symbol-size 256 ^
     --batch-size 128 ^
     --layer-depth 2 ^
     --dropout-rate 0.1 ^
     --src "../build/models/edge-server/deployed-model/model" ^
-    --test-src "../build/data/phm2012/feature-8-level-extracted/Learning_set-Bearing1_1-acc.csv"
+    --test-src "../build/data/edge-server/vibration.csv" ^
+    --src-breakpoint "../build/meta/phm2012/breakpoints-from-feature/breakpoint-256.csv"
+
 """
 import sys
 import os
@@ -22,9 +22,14 @@ import math
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from utils.utils import log, get_args, get_batch_count
+from bisect import bisect_left
+from utils.utils import get_args
 from utils.preprocess import get_windowed_data
+from utils.input import get_batch
 from models.EncDecEmbedding import Model
+import importlib
+
+p = importlib.import_module('extract-feature')
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 args = get_args()
@@ -33,8 +38,33 @@ dataset = np.empty((0, args.step_size))
 def read_dataset():
     global dataset
 
-    df = pd.read_csv(args.test_src, usecols=args.columns)
-    feature_data = np.reshape(get_windowed_data(df[args.column].values, args.step_size), (-1, args.step_size))
+    df_chunks = pd.read_csv(
+        args.test_src,
+        header=None,
+        names=['x'],
+        chunksize=100000
+    )
+
+    # feature extration
+    ffts = []
+    for batch_idx, df_batch in get_batch(df_chunks, args.batch_size):
+        values = np.array(df_batch['x'])
+        fft1, fft2 = p.get_fft(values, args.batch_size)
+        ffts.append(fft1)
+    ffts = np.array(ffts)
+    minimum = np.amin(ffts)
+    maximum = np.amax(ffts)
+    normalized_ffts = (ffts - minimum) / (maximum - minimum)
+
+    # quantization
+    df_breakpoints = pd.read_csv(args.src_breakpoint)
+    level_normalized_ffts = np.array([
+        bisect_left(df_breakpoints['normalized_fft1'], element)
+        for element in normalized_ffts
+    ])
+
+    # unfold
+    feature_data = np.reshape(get_windowed_data(level_normalized_ffts, args.step_size), (-1, args.step_size))
     dataset = np.concatenate((dataset, feature_data), axis=0)
 
     # cut last batch
@@ -68,5 +98,7 @@ if __name__ == '__main__':
                 'input_layer/feed_previous:0': True,
             })
             mse = np.mean((restored_ys - restored_predictions) ** 2, axis=1)
-            is_anomaly = mse[-1] > args.threshold
-            print('Anomaly' if is_anomaly else 'Normal')
+            is_anomaly = mse[0] > args.threshold
+
+            with open(os.path.join(args.src, '../../inference-result.txt'), 'w') as fd_result:
+                fd_result.write('anomaly' if is_anomaly else 'normal')
